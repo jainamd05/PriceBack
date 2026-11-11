@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PriceBack Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/pb.css">
+<style>
+body { font-size: 14.5px; }
+.app { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; }
+
+/* ---- sidebar -------------------------------------------------------------------------------- */
+.side { position: sticky; top: 0; height: 100vh; background: var(--night); color: var(--on-night); display: flex; flex-direction: column; padding: 22px 14px 18px; gap: 22px; overflow-y: auto; }
+.side .brand { padding: 0 8px; }
+.side .brand small { font: 500 11px/1 var(--mono); color: var(--on-night-mut); padding-left: 10px; border-left: 1px solid #3a352d; letter-spacing: 0; }
+.menu { display: flex; flex-direction: column; gap: 2px; }
+.menu .grp { font: 600 10px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: #6f675a; padding: 16px 12px 8px; }
+.menu button { justify-content: flex-start; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 0; background: transparent; color: #c9c0ae; font-weight: 550; font-size: 14px; }
+.menu button svg { width: 18px; height: 18px; flex: none; opacity: .8; }
+.menu button:hover:not(:disabled) { background: #1e1b17; color: var(--on-night); }
+.menu button[aria-current="page"] { background: var(--on-night); color: var(--night); }
+.menu button[aria-current="page"] svg { opacity: 1; color: var(--accent); }
+.menu .count { margin-left: auto; font: 500 11px/1 var(--mono); padding: 3px 7px; border-radius: 999px; background: #2a2620; color: #b8ae9b; }
+.menu button[aria-current="page"] .count { background: var(--paper-2); color: var(--ink-2); }
+.menu .count.hot { background: var(--accent); color: var(--accent-ink); }
+.side-card { margin-top: auto; border-radius: 14px; padding: 14px; background: #1b1814; border: 1px solid #2c2822; font-size: 13px; }
+.side-card .chip { margin-bottom: 10px; }
+.side-card q { display: block; color: #d9d0bf; font: italic 400 17px/1.25 var(--serif); quotes: "“" "”"; }
+.side-card .mut { color: var(--on-night-mut); margin: 8px 0 0; font-size: 12px; }
+.side-foot { display: flex; justify-content: space-between; gap: 10px; padding: 0 8px; font-size: 13px; color: var(--on-night-mut); }
+.side-foot a { color: var(--on-night); }
+.side-foot button.link { color: var(--on-night-mut); font-size: 13px; }
+
+/* ---- main ---------------------------------------------------------------------------------- */
+.main { min-width: 0; padding: 0 clamp(16px, 3vw, 40px) 60px; }
+.bar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; background: color-mix(in srgb, var(--paper) 86%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.bar h1 { margin: 0; font-size: 26px; letter-spacing: -.04em; line-height: 1; }
+.bar .sub { color: var(--mut); font-size: 13px; margin-top: 5px; }
+.bar-right { display: flex; gap: 10px; align-items: center; }
+.view { display: none; padding-top: 26px; animation: rise .35s var(--ease); }
+.view.on { display: block; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; box-shadow: var(--shadow); min-width: 0; }
+.card-h { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.card-h h2 { margin: 0; font-size: 18px; letter-spacing: -.025em; }
+.empty-note { padding: 34px 18px; text-align: center; color: var(--mut); }
+.empty-note b { display: block; color: var(--ink); font-size: 17px; letter-spacing: -.02em; margin-bottom: 4px; }
+
+/* ---- overview ------------------------------------------------------------------------------ */
+.banner { position: relative; border-radius: 24px; overflow: hidden; color: var(--on-night); padding: clamp(24px, 4vw, 44px); min-height: 230px; display: flex; flex-direction: column; justify-content: flex-end; isolation: isolate; background: var(--night); }
+.banner .ph { position: absolute; inset: 0; z-index: -2; background-size: cover; background-position: center 40%; }
+.banner::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(10,9,8,.94) 0%, rgba(10,9,8,.7) 50%, rgba(10,9,8,.25)); }
+.banner h2 { margin: 10px 0 8px; font-size: clamp(34px, 4.6vw, 60px); line-height: .92; letter-spacing: -.05em; }
+.banner h2 .serif { color: var(--accent-2); }
+.banner p { margin: 0; color: #d6cdbb; max-width: 60ch; font-size: 15px; }
+.banner .eyebrow { color: var(--on-night-mut); }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin: 20px 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+.kpi { padding: 18px 20px 20px; border-right: 1px dashed var(--line-2); min-width: 0; }
+.kpi:last-child { border-right: 0; }
+.kpi .k { font: 600 10.5px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--mut); }
+.kpi .v { font: 600 clamp(22px, 2.3vw, 32px)/1 var(--mono); letter-spacing: -.05em; margin-top: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .v.ok { color: var(--ok); } .kpi .v.accent { color: var(--accent); }
+.kpi .d { font: 500 11.5px/1.3 var(--mono); color: var(--mut); margin-top: 8px; }
+.chart { width: 100%; height: auto; display: block; }
+.chart text { font-family: var(--mono); font-size: 10px; fill: var(--mut); }
+.chart .bar-r { fill: var(--accent); }
+.chart .bar-r.zero { fill: var(--line); }
+.chart .gridl { stroke: var(--line); stroke-dasharray: 2 4; }
+.gauge-wrap { display: grid; place-items: center; position: relative; }
+.gauge-wrap .mid { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding-top: 18px; }
+.gauge-wrap .mid b { font: 600 34px/1 var(--mono); letter-spacing: -.05em; }
+.gauge-wrap .mid span { font: 500 11px/1.4 var(--mono); color: var(--mut); text-transform: uppercase; letter-spacing: .08em; }
+.gauge-legend { display: flex; justify-content: space-between; font: 500 12px/1.3 var(--mono); color: var(--mut); margin-top: 6px; }
+.feed { list-style: none; margin: 0; padding: 0; }
+.feed li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+.feed li:last-child { border-bottom: 0; }
+.feed .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font: 700 14px/1 var(--mono); }
+.feed .ic.refund { background: var(--ok-soft); color: var(--ok); }
+.feed .ic.blocked { background: var(--bad-soft); color: var(--bad); }
+.feed .ic.order { background: var(--paper-2); color: var(--ink-2); }
+.feed .t { font-weight: 600; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed .m { font: 500 11.5px/1.4 var(--mono); color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed .amt { font: 600 15px/1 var(--mono); text-align: right; }
+.feed .amt small { display: block; font-size: 11px; color: var(--mut); font-weight: 500; margin-top: 4px; }
+.attn { display: flex; flex-direction: column; gap: 10px; }
+.attn div { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--warn-soft); color: var(--warn); font-size: 13.5px; }
+.attn div.bad { background: var(--bad-soft); color: var(--bad); }
+.attn div.ok { background: var(--ok-soft); color: var(--ok); }
+.attn b { display: block; color: inherit; }
+
+/* ---- promise ----------------------------------------------------------------------------------- */
+textarea { min-height: 120px; resize: vertical; line-height: 1.5; font-size: 16px; }
+.examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.examples button { padding: 7px 12px; font: 500 12px/1.2 var(--display); background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--line); text-align: left; }
+.examples button:hover:not(:disabled) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+.sheet { margin-top: 22px; border: 1.5px solid var(--ink); border-radius: 16px; overflow: hidden; animation: rise .3s var(--ease); }
+.sheet-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px; background: var(--ink); color: var(--paper); flex-wrap: wrap; }
+.sheet-h b { font: 600 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.sheet-h .chip { color: var(--paper); border-color: rgba(255,255,255,.3); }
+.terms-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.term { padding: 16px; border-right: 1px dashed var(--line-2); border-bottom: 1px dashed var(--line-2); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.term:nth-child(2n) { border-right: 0; }
+.term label { font: 600 10.5px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--mut); }
+.term .in { display: flex; align-items: baseline; gap: 6px; }
+.term input { font: 600 28px/1 var(--mono); letter-spacing: -.04em; padding: 4px 0; border: 0; border-bottom: 1.5px solid var(--line-2); border-radius: 0; background: transparent; box-shadow: none; }
+.term input:focus { border-bottom-color: var(--accent); box-shadow: none; }
+.term .unit { font: 500 14px/1 var(--mono); color: var(--mut); }
+.sheet-notes { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+.sheet-notes p { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: 13px; }
+.sheet .actions { padding: 0 16px 16px; }
+.contract { background: var(--card); border-radius: 6px; padding: 34px 30px 38px; box-shadow: var(--shadow); position: relative; border: 1px solid var(--line); }
+.contract::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: repeating-linear-gradient(90deg, var(--accent) 0 18px, transparent 18px 26px); border-radius: 6px 6px 0 0; }
+.contract .stamp { position: absolute; right: 22px; top: 26px; transform: rotate(8deg); border: 2px solid var(--ok); color: var(--ok); font: 700 12px/1 var(--mono); letter-spacing: .14em; padding: 8px 10px; border-radius: 6px; text-transform: uppercase; }
+.contract .stamp.off { border-color: var(--warn); color: var(--warn); }
+.contract h3 { font: 700 13px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; margin: 6px 0 20px; color: var(--mut); }
+.contract blockquote { margin: 0 0 24px; font: italic 400 clamp(24px, 2.6vw, 34px)/1.18 var(--serif); letter-spacing: -.01em; }
+.contract dl { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0; border-top: 1.5px solid var(--ink); }
+.contract dl div { padding: 14px 0; border-bottom: 1px dashed var(--line-2); }
+.contract dl div:nth-child(odd) { padding-right: 14px; border-right: 1px dashed var(--line-2); }
+.contract dl div:nth-child(even) { padding-left: 14px; }
+.contract dt { font: 600 10px/1.2 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mut); }
+.contract dd { margin: 6px 0 0; font: 600 22px/1 var(--mono); letter-spacing: -.04em; }
+.contract .sig { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; font: 500 12px/1.4 var(--mono); color: var(--mut); flex-wrap: wrap; }
+
+/* ---- catalog -------------------------------------------------------------------------------- */
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.pcard { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.pcard .art { aspect-ratio: 4 / 3; background: #fff; position: relative; }
+.pcard .art { overflow: hidden; min-height: 0; }
+.pcard .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mono-art { display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 55%), linear-gradient(160deg, var(--night-2), var(--night)) !important; }
+.mono-art span { font: 800 150px/.8 var(--display); letter-spacing: -.08em; color: transparent; -webkit-text-stroke: 1.5px rgba(244, 238, 226, .25); transform: translateY(6%); }
+.pcard .body { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.pcard h3 { margin: 0; font-size: 16px; letter-spacing: -.02em; line-height: 1.25; }
+.pcard .pr { display: flex; align-items: baseline; gap: 10px; margin-top: auto; padding-top: 10px; }
+.pcard .pr b { font: 600 22px/1 var(--mono); letter-spacing: -.04em; }
+.pcard .pr s { font: 500 13px/1 var(--mono); color: var(--mut); }
+.pcard .pr b.sim { color: var(--accent); }
+.pcard .meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.pcard .x { position: absolute; top: 10px; right: 10px; z-index: 2; padding: 8px 11px; font-size: 12px; background: rgba(10,9,8,.7); color: #fff; border: 0; backdrop-filter: blur(4px); }
+.pcard .x:hover:not(:disabled) { background: var(--bad); }
+.pcard .x.armed { background: var(--bad); }
+.pcard .sim-flag { position: absolute; left: 10px; top: 10px; z-index: 2; }
+.drawer-bg { position: fixed; inset: 0; z-index: 70; background: rgba(10,9,8,.45); backdrop-filter: blur(3px); display: none; }
+.drawer-bg.open { display: block; animation: fade .2s ease-out; }
+@keyframes fade { from { opacity: 0; } }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: var(--paper); z-index: 71; transform: translateX(105%); transition: transform .35s var(--ease); display: flex; flex-direction: column; box-shadow: -30px 0 60px -30px rgba(0,0,0,.5); }
+.drawer.open { transform: none; }
+.drawer-h { display: flex; justify-content: space-between; align-items: center; padding: 22px 24px; border-bottom: 1px solid var(--line); }
+.drawer-h h2 { margin: 0; font-size: 22px; letter-spacing: -.03em; }
+.drawer-b { padding: 22px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+.preview-tag { border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+.preview-tag .art { aspect-ratio: 16 / 10; background: #fff; }
+.preview-tag .art img { width: 100%; height: 100%; object-fit: cover; }
+.preview-tag .mono-art span { font-size: 120px; }
+.preview-tag .pv { padding: 14px 16px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.preview-tag .pv b { font-size: 16px; letter-spacing: -.02em; }
+.preview-tag .pv span { font: 600 20px/1 var(--mono); letter-spacing: -.04em; }
+
+/* ---- price lab ------------------------------------------------------------------------------- */
+.lab { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; }
+.picker { display: flex; flex-direction: column; gap: 8px; }
+.pick { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--card); cursor: pointer; text-align: left; color: var(--ink); font-weight: 500; justify-content: stretch; }
+.pick:hover:not(:disabled) { background: var(--card); color: var(--ink); border-color: var(--ink); }
+.pick[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); background: var(--card); color: var(--ink); }
+.pick .art, .pick .mono-art { width: 46px; height: 46px; border-radius: 10px; overflow: hidden; background: #fff; }
+.pick .art img { width: 100%; height: 100%; object-fit: cover; }
+.pick .mono-art span { font-size: 30px; -webkit-text-stroke: 1px rgba(244,238,226,.5); }
+.pick .t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
+.pick .p { font: 500 12px/1.3 var(--mono); color: var(--mut); }
+.lab-stage .bigline { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 4px 0 6px; }
+.lab-stage .bigline s { font: 500 24px/1 var(--mono); color: var(--mut); }
+.lab-stage .bigline b { font: 600 clamp(40px, 5vw, 64px)/1 var(--mono); letter-spacing: -.06em; color: var(--accent); }
+.lab-stage .slider-row { margin: 18px 0 6px; }
+.lab-stage .slider-row label { display: flex; justify-content: space-between; font: 600 10.5px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mut); margin-bottom: 6px; }
+.chips-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips-row button { padding: 6px 11px; font: 500 12px/1 var(--mono); background: transparent; color: var(--ink); border: 1px solid var(--line-2); }
+.chips-row button:hover:not(:disabled), .chips-row button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.impact { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px dashed var(--line-2); margin-top: 18px; }
+.impact > div { padding: 16px 14px 0 0; }
+.impact > div + div { padding-left: 14px; border-left: 1px dashed var(--line-2); }
+.impact b { display: block; font: 600 24px/1 var(--mono); letter-spacing: -.04em; margin-top: 8px; }
+.impact .note { font-size: 12px; color: var(--mut); margin-top: 6px; }
+.pchart text { font-family: var(--mono); font-size: 11px; fill: var(--mut); }
+
+/* ---- refunds as receipts ---------------------------------------------------------------------- */
+.filters { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+.filters button { padding: 9px 14px; font-size: 13px; background: transparent; color: var(--ink-2); border: 1px solid var(--line-2); }
+.filters button[aria-pressed="true"], .filters button:hover:not(:disabled) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.slips { columns: 3 300px; column-gap: 22px; }
+.slip { break-inside: avoid; margin-bottom: 30px; display: block; }
+.slip .top { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; color: var(--mut); }
+.slip .who { font-family: var(--display); font-weight: 650; font-size: 15px; letter-spacing: -.02em; margin: 10px 0 2px; color: var(--ink); }
+.slip .decision { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 12px 0 4px; }
+.slip .amount { font: 600 32px/1 var(--mono); letter-spacing: -.05em; }
+.slip .amount.ok { color: var(--ok); }
+.slip .amount.no { color: var(--mut); text-decoration: line-through; font-size: 24px; }
+.slip .msg { font-family: var(--display); font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+.slip .err { color: var(--bad); }
+
+/* ---- tables ------------------------------------------------------------------------------------ */
+.tools { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; font-size: 13px; color: var(--mut); }
+.tools label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+.tools input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th { text-align: left; font: 600 10.5px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--mut); padding: 12px 12px; border-bottom: 1.5px solid var(--ink); white-space: nowrap; }
+td { padding: 14px 12px; border-bottom: 1px dashed var(--line); vertical-align: middle; white-space: nowrap; }
+tbody tr:hover td { background: color-mix(in srgb, var(--paper-2) 55%, transparent); }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+td .tiny { font: 500 11.5px/1.4 var(--mono); color: var(--mut); }
+.howto { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.howto div { padding: 16px; border-radius: 14px; background: var(--paper-2); font-size: 13.5px; color: var(--ink-2); }
+.howto b { display: block; font: 600 22px/1 var(--mono); color: var(--accent); margin-bottom: 8px; }
+.howto code { font-family: var(--mono); font-size: 12px; background: var(--card); padding: 2px 5px; border-radius: 5px; word-break: break-all; }
+
+/* ---- token gate ------------------------------------------------------------------------------------ */
+.gate { position: fixed; inset: 0; z-index: 95; display: none; grid-template-columns: 1.1fr 1fr; background: var(--paper); }
+.gate.open { display: grid; }
+.gate .pic { position: relative; background: var(--night) center / cover; isolation: isolate; color: var(--on-night); display: flex; align-items: flex-end; padding: 44px; }
+.gate .pic::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgba(10,9,8,.9), rgba(10,9,8,.2)); }
+.gate .pic h2 { font-size: clamp(36px, 4vw, 60px); line-height: .92; letter-spacing: -.05em; margin: 0; }
+.gate .pic h2 .serif { color: var(--accent-2); }
+.gate form { align-self: center; justify-self: center; width: min(400px, 100% - 32px); }
+.gate form h3 { font-size: 30px; letter-spacing: -.04em; margin: 10px 0 8px; }
+.gate form p { color: var(--mut); margin: 0 0 22px; }
+.gate .err { color: var(--bad); font-size: 13px; margin: 10px 0 0; min-height: 1em; }
+.gate button { width: 100%; margin-top: 14px; }
+
+/* ---- responsive ------------------------------------------------------------------------------------ */
+@media (max-width: 1180px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .kpi:nth-child(3) { border-right: 0; } .kpi:nth-child(-n+3) { border-bottom: 1px dashed var(--line-2); } }
+@media (max-width: 1000px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .side { align-self: start; }
+  .side { position: sticky; top: 0; z-index: 30; height: auto; flex-direction: row; align-items: center; padding: 10px 12px; gap: 10px; overflow-x: auto; overflow-y: hidden; }
+  .side .brand small, .side-card, .side-foot, .menu .grp { display: none; }
+  .menu { flex-direction: row; gap: 4px; }
+  .menu button { width: auto; white-space: nowrap; padding: 9px 12px; }
+  .menu button svg { display: none; }
+  .bar { position: static; }
+  .grid2, .lab { grid-template-columns: 1fr; }
+  .gate { grid-template-columns: 1fr; } .gate .pic { display: none; }
+}
+@media (max-width: 600px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .kpi, .kpi:nth-child(n) { border-right: 1px dashed var(--line-2); border-bottom: 1px dashed var(--line-2); }
+  .kpi:nth-child(2n) { border-right: 0; }
+  .terms-grid, .impact, .howto, .contract dl { grid-template-columns: 1fr; }
+  .term { border-right: 0; }
+  .impact > div + div { border-left: 0; padding-left: 0; }
+  .contract dl div:nth-child(n) { padding-left: 0; padding-right: 0; border-right: 0; }
+  .card { padding: 18px; }
+  .contract { padding: 28px 20px 30px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side" aria-label="Console navigation">
+    <a class="brand" href="#overview" id="brand">PriceBack <small>console</small></a>
+    <nav class="menu" id="menu"></nav>
+    <div class="side-card" id="side-card"></div>
+    <div class="side-foot"><a href="/" target="_blank" rel="noopener">Storefront ↗</a><button class="link" id="signout" hidden>Lock</button></div>
+  </aside>
+
+  <main class="main">
+    <header class="bar">
+      <div><h1 id="view-title">Overview</h1><div class="sub" id="view-sub"></div></div>
+      <div class="bar-right"><span class="chip warn dot">PayPal sandbox</span><button id="run" class="small">Run watcher now</button></div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section class="view" data-view="overview">
+      <div class="banner"><div class="ph" data-photo="pos"></div>
+        <div class="eyebrow" id="greet-date"></div>
+        <h2 id="greet"></h2>
+        <p id="greet-sub"></p>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="grid2">
+        <div class="card"><div class="card-h"><h2>Refunds, last 14 days</h2><span class="chip" id="chart-total"></span></div><div id="chart"></div></div>
+        <div class="card"><div class="card-h"><h2>Today's refund budget</h2><span class="chip" id="budget-chip"></span></div><div id="gauge"></div></div>
+      </div>
+      <div class="grid2" style="margin-top:20px">
+        <div class="card"><div class="card-h"><h2>Live feed</h2><button class="link" data-go="refunds">All decisions →</button></div><ul class="feed" id="feed"></ul></div>
+        <div class="card"><div class="card-h"><h2>Needs attention</h2></div><div class="attn" id="attn"></div></div>
+      </div>
+    </section>
+
+    <!-- PROMISE -->
+    <section class="view" data-view="promise">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h"><h2 id="promise-h">Write a new promise</h2></div>
+          <label class="field"><span>Your promise, in plain English</span>
+            <textarea id="promise-text" maxlength="1000" placeholder="e.g. Refund the difference if the price drops within 14 days, up to $20 per order and $100 per day."></textarea></label>
+          <div class="eyebrow" style="margin-top:14px">Start from a pattern</div>
+          <div class="examples" id="examples"></div>
+          <div class="actions"><button id="compile">Compile into terms <span class="arrow">→</span></button><span class="mut" style="font-size:13px">Nothing goes live until you review the numbers.</span></div>
+          <div id="compiled"></div>
+        </div>
+        <div id="contract"></div>
+      </div>
+    </section>
+
+    <!-- CATALOG -->
+    <section class="view" data-view="catalog">
+      <div class="tools"><span id="cat-count"></span><span style="display:flex;gap:8px;flex-wrap:wrap"><button id="import-c3" class="ghost small">Import from Channel3</button><button id="open-add" class="small accent">+ Add product</button></span></div>
+      <div class="filters" id="cat-filters" style="margin-bottom:16px"></div>
+      <div class="pgrid" id="pgrid"></div>
+    </section>
+
+    <!-- PRICE LAB -->
+    <section class="view" data-view="lab">
+      <div class="lab">
+        <div><div class="eyebrow" style="margin-bottom:10px">Pick a product</div><div class="picker" id="picker"></div></div>
+        <div class="card lab-stage" id="lab-stage"></div>
+      </div>
+    </section>
+
+    <!-- REFUNDS -->
+    <section class="view" data-view="refunds">
+      <div class="filters" id="filters"></div>
+      <div class="slips" id="slips"></div>
+    </section>
+
+    <!-- ORDERS -->
+    <section class="view" data-view="orders">
+      <div class="card"><div class="tools" id="order-tools"></div><div class="tablewrap" id="orders-table"></div></div>
+    </section>
+
+    <!-- WEBHOOKS -->
+    <section class="view" data-view="webhooks">
+      <div class="card"><div class="tablewrap" id="ledger"></div></div>
+      <div class="howto">
+        <div><b>01</b>PayPal developer dashboard → your app → <b style="display:inline;font-size:inherit;color:inherit">Webhooks → Add webhook</b>.</div>
+        <div><b>02</b>URL: <code id="hook-url"></code>. Events: <code>PAYMENT.CAPTURE.COMPLETED</code>, <code>PAYMENT.CAPTURE.REFUNDED</code>.</div>
+        <div><b>03</b>Put the Webhook ID in <code>PAYPAL_WEBHOOK_ID</code>. PayPal can't reach <code>localhost</code>, so use a tunnel (ngrok / cloudflared) or a deployed URL.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- add-product drawer -->
+<div class="drawer-bg" id="drawer-bg"></div>
+<aside class="drawer" id="drawer" aria-labelledby="drawer-h" aria-hidden="true">
+  <div class="drawer-h"><h2 id="drawer-h">Add a product</h2><button class="ghost small" id="close-add" type="button">Close</button></div>
+  <form class="drawer-b" id="add-form" autocomplete="off">
+    <div class="preview-tag" id="preview-tag"></div>
+    <label class="field"><span>Product name</span><input id="np-title" required maxlength="200" placeholder="What are you selling?"></label>
+    <label class="field"><span id="np-price-label">Price (USD)</span><input id="np-price" required type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+    <label class="field"><span>Category</span><input id="np-cat" list="cat-list" maxlength="60" placeholder="e.g. Headphones &amp; Earbuds"><datalist id="cat-list"></datalist></label>
+    <label class="field"><span>Image URL · optional, https only</span><input id="np-img" type="url" placeholder="https://…" pattern="https://.*"></label>
+    <button type="submit" id="np-submit">Add to catalog</button>
+    <p class="mut" style="margin:0;font-size:13px" id="np-note">It appears on the storefront straight away.</p>
+  </form>
+</aside>
+
+<!-- token gate -->
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-h">
+  <div class="pic" id="gate-pic"><h2>Every promise,<br><span class="serif">kept automatically.</span></h2></div>
+  <form id="gate-form">
+    <div class="eyebrow">Merchant access</div>
+    <h3 id="gate-h">Unlock the console</h3>
+    <p>Enter the admin token from <span class="mono">ADMIN_TOKEN</span>. It is kept in this browser tab only.</p>
+    <input id="gate-token" type="password" autocomplete="current-password" required placeholder="Admin token">
+    <p class="err" id="gate-err"></p>
+    <button type="submit">Unlock <span class="arrow">→</span></button>
+  </form>
+</div>
+
+<script src="/static/pb.js"></script>
+<script>
+const store = {
+  get(k) { try { return sessionStorage.getItem(k) || ''; } catch { return ''; } },
+  set(k, v) { try { v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k); } catch {} },
+};
+
+// ---- auth ------------------------------------------------------------------------------------------
+let TOKEN = store.get('pb_token');
+let tokenWait = null;
+function askToken(wrong) {
+  if (!tokenWait) tokenWait = new Promise((resolve) => {
+    $('#gate').classList.add('open');
+    $('#gate-err').textContent = wrong ? 'That token was not accepted.' : '';
+    setTimeout(() => $('#gate-token').focus(), 30);
+    $('#gate-form').onsubmit = (ev) => {
+      ev.preventDefault();
+      TOKEN = $('#gate-token').value.trim();
+      store.set('pb_token', TOKEN);
+      $('#gate').classList.remove('open');
+      $('#gate-token').value = '';
+      tokenWait = null;
+      resolve();
+    };
+  });
+  return tokenWait;
+}
+$('#signout').onclick = () => { store.set('pb_token', ''); location.reload(); };
+
+async function api(path, opts = {}) {
+  const go = () => fetch(path, {...opts, headers: {'content-type': 'application/json', 'x-admin-token': TOKEN, ...(opts.headers || {})}});
+  let r = await go();
+  while (r.status === 401) { await askToken(Boolean(TOKEN)); r = await go(); }
+  if (TOKEN) $('#signout').hidden = false;
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const d = j.detail;
+    throw new Error(typeof d === 'string' ? d : Array.isArray(d) && d[0]?.msg ? d[0].msg : (r.statusText || 'Request failed'));
+  }
+  return j;
+}
+const post = (p, body) => api(p, {method: 'POST', body: JSON.stringify(body || {})});
+async function busy(btn, fn) {
+  if (btn) { btn.disabled = true; btn.classList.add('busy'); }
+  try { await fn(); } catch (e) { toast(e.message, 'err'); } finally { if (btn) { btn.disabled = false; btn.classList.remove('busy'); } }
+}
+
+// ---- state + routing --------------------------------------------------------------------------------
+const S = {products: [], stats: null, policy: null, settle: [], orders: [], ledger: [], showUnpaid: false, filter: 'all', lab: {id: null, pct: 20}};
+const ICON = {
+  overview: 'M3 13h8V3H3zm10 8h8V11h-8zM3 21h8v-6H3zm10-18v6h8V3z',
+  promise: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',
+  catalog: 'M3 7l9-4 9 4-9 4zm0 0v10l9 4 9-4V7M12 11v10',
+  lab: 'M9 3h6M10 3v6L4 19a1.5 1.5 0 0 0 1.3 2h13.4a1.5 1.5 0 0 0 1.3-2L14 9V3M7 15h10',
+  refunds: 'M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2zM9 8h6M9 12h6',
+  orders: 'M4 5h2l2 11h10l2-8H7M9 20.5a.5.5 0 1 0 0-1M17 20.5a.5.5 0 1 0 0-1',
+  webhooks: 'M8 9a4 4 0 1 1 6.5 3.1L17 17M7 17h7M17 17a2 2 0 1 0 0 .1M7 17a2 2 0 1 0 0 .1M12 5.5V3',
+};
+const VIEWS = [
+  {id: 'overview', label: 'Overview', group: 'Desk', sub: () => 'How your guarantee is doing right now.'},
+  {id: 'promise', label: 'Promise', group: 'Desk', sub: () => 'What you promise buyers, in plain English and in numbers.'},
+  {id: 'catalog', label: 'Catalog', group: 'Desk', sub: () => 'The products on your storefront.'},
+  {id: 'lab', label: 'Price lab', group: 'Desk', sub: () => 'Simulate a market price drop and watch the refund engine react.'},
+  {id: 'refunds', label: 'Refund decisions', group: 'Ledger', count: () => S.settle.length, sub: () => 'Every refund and every guardrail block, with the reason.'},
+  {id: 'orders', label: 'Orders', group: 'Ledger', count: () => paidOrders().length, sub: () => 'Payments received through PayPal.'},
+  {id: 'webhooks', label: 'Webhooks', group: 'Ledger', count: () => S.ledger.length, sub: () => 'Signed confirmations PayPal sends back.'},
+];
+const current = () => (VIEWS.find((v) => v.id === location.hash.slice(1)) || VIEWS[0]).id;
+
+function renderMenu() {
+  const cur = current();
+  let grp = null;
+  const kids = [];
+  for (const v of VIEWS) {
+    if (v.group !== grp) { grp = v.group; kids.push(h('div', {class: 'grp'}, grp)); }
+    const n = v.count ? v.count() : null;
+    const hot = v.id === 'refunds' && S.settle.some((x) => x.status === 'FAILED' || x.status === 'pending_api');
+    kids.push(h('button', {type: 'button', 'aria-current': v.id === cur ? 'page' : null, onclick: () => { location.hash = v.id; }},
+      s('svg', {viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round'}, s('path', {d: ICON[v.id]})),
+      v.label, n !== null ? h('span', {class: 'count' + (hot ? ' hot' : '')}, String(n)) : null));
+  }
+  $('#menu').replaceChildren(...kids);
+}
+function showView() {
+  const cur = current();
+  const v = VIEWS.find((x) => x.id === cur);
+  $$('.view').forEach((el) => el.classList.toggle('on', el.dataset.view === cur));
+  $('#view-title').textContent = v.label;
+  $('#view-sub').textContent = v.sub();
+  document.title = `${v.label} · PriceBack Console`;
+  renderMenu();
+  window.scrollTo({top: 0});
+}
+window.addEventListener('hashchange', showView);
+document.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) location.hash = g.dataset.go; });
+
+// ---- helpers -------------------------------------------------------------------------------------------
+const chip = (text, cls = '') => h('span', {class: 'chip ' + cls}, text);
+const statusChip = (st) => chip(human(st), st === 'COMPLETED' || st === 'CAPTURED' ? 'ok' : (/FAILED|MISMATCH/.test(st) ? 'bad' : (/PENDING|pending/.test(st) ? 'warn' : '')));
+const paidOrders = () => S.orders.filter((o) => o.status !== 'CREATED');
+const productById = (id) => S.products.find((p) => p.id === id);
+const refundedFor = (orderId) => S.settle.filter((x) => x.order_id === orderId && x.action === 'refund' && x.status !== 'FAILED').reduce((a, x) => a + x.amount_cents, 0);
+
+// ---- side card ---------------------------------------------------------------------------------------------
+function renderSide() {
+  const pol = S.policy;
+  $('#side-card').replaceChildren(pol
+    ? h('div', {}, chip('Guarantee live', 'ok live'), h('q', {}, pol.text), h('p', {class: 'mut'}, `${pol.policy.window_days} days · ${dollars(pol.policy.max_refund_per_order)}/order · ${dollars(pol.policy.daily_budget)}/day`))
+    : h('div', {}, chip('No guarantee live', 'warn dot'), h('p', {class: 'mut'}, 'Orders placed now are not covered.'), h('button', {class: 'small', style: 'margin-top:10px', 'data-go': 'promise'}, 'Write a promise')));
+}
+
+// ---- overview ----------------------------------------------------------------------------------------------
+function renderOverview() {
+  const st = S.stats;
+  const hr = new Date().getHours();
+  $('#greet-date').textContent = new Date().toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
+  $('#greet').replaceChildren(hr < 12 ? 'Good morning.' : hr < 18 ? 'Good afternoon.' : 'Good evening.', ' ',
+    h('span', {class: 'serif'}, st.refunded_today_cents ? `${money(st.refunded_today_cents)} returned today.` : (S.policy ? 'Promise is live.' : 'No promise live.')));
+  $('#greet-sub').textContent = S.policy
+    ? `${st.guaranteed_orders} covered order${st.guaranteed_orders === 1 ? '' : 's'} worth ${money(st.revenue_cents)}. Up to ${money(st.open_exposure_cents)} could still be refunded if prices fall.`
+    : 'Write a promise to start covering new orders.';
+  const k = (label, v, cls, d) => h('div', {class: 'kpi'}, h('div', {class: 'k'}, label), h('div', {class: 'v ' + (cls || '')}, v), d ? h('div', {class: 'd'}, d) : null);
+  $('#kpis').replaceChildren(
+    k('Covered orders', String(st.guaranteed_orders), '', `${paidOrders().length} paid in total`),
+    k('Revenue covered', money(st.revenue_cents)),
+    k('Refunded to buyers', money(st.refunded_cents), 'ok', `${money(st.refunded_today_cents)} today`),
+    k('Open exposure', money(st.open_exposure_cents), 'accent', 'worst case still payable'),
+    k('Guardrail blocks', String(st.blocked_count), '', 'caps and budgets held'));
+  renderChart(); renderGauge(); renderFeed(); renderAttention();
+}
+
+function renderChart() {
+  const days = 14, W = 640, H = 220, padL = 44, padB = 26, padT = 12;
+  const start = new Date(); start.setHours(0, 0, 0, 0); start.setDate(start.getDate() - (days - 1));
+  const buckets = Array.from({length: days}, (_, i) => ({d: new Date(start.getTime() + i * 86400000), c: 0}));
+  for (const x of S.settle) {
+    if (x.action !== 'refund' || x.status === 'FAILED') continue;
+    const i = Math.floor((x.created_at * 1000 - start.getTime()) / 86400000);
+    if (i >= 0 && i < days) buckets[i].c += x.amount_cents;
+  }
+  const total = buckets.reduce((a, b) => a + b.c, 0);
+  $('#chart-total').textContent = money(total);
+  const max = Math.max(500, ...buckets.map((b) => b.c));
+  const step = (W - padL) / days, bw = step * .62;
+  const y = (c) => H - padB - (c / max) * (H - padB - padT);
+  const ticks = [0, max / 2, max];
+  $('#chart').replaceChildren(s('svg', {class: 'chart', viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Refunds per day, total ${money(total)}`},
+    ...ticks.map((t) => s('g', {}, s('line', {class: 'gridl', x1: padL, x2: W, y1: y(t), y2: y(t)}), s('text', {x: padL - 8, y: y(t) + 3, 'text-anchor': 'end'}, '$' + Math.round(t / 100)))),
+    ...buckets.map((b, i) => {
+      const x = padL + i * step + (step - bw) / 2;
+      const hgt = Math.max(2, H - padB - y(b.c));
+      return s('g', {},
+        s('rect', {class: 'bar-r' + (b.c ? '' : ' zero'), x, y: H - padB - hgt, width: bw, height: hgt, rx: 3}, s('title', {}, `${b.d.toLocaleDateString([], {month: 'short', day: 'numeric'})}: ${money(b.c)}`)),
+        (i % 2 === (days - 1) % 2) ? s('text', {x: x + bw / 2, y: H - 8, 'text-anchor': 'middle'}, String(b.d.getDate())) : null);
+    })));
+}
+
+function renderGauge() {
+  const st = S.stats;
+  const budget = st.daily_budget_cents, used = st.refunded_today_cents;
+  $('#budget-chip').textContent = S.policy ? `${money(budget)} / day` : 'no promise';
+  const frac = budget ? Math.min(1, used / budget) : 0;
+  const R = 90, cx = 120, cy = 116, a0 = Math.PI * 0.8, a1 = Math.PI * 2.2;
+  const pt = (a) => [cx + R * Math.cos(a), cy + R * Math.sin(a)];
+  const arc = (from, to) => { const [x0, y0] = pt(from), [x1, y1] = pt(to); return `M${x0} ${y0} A${R} ${R} 0 ${to - from > Math.PI ? 1 : 0} 1 ${x1} ${y1}`; };
+  const color = frac >= .75 ? 'var(--accent)' : 'var(--ok)';
+  $('#gauge').replaceChildren(
+    h('div', {class: 'gauge-wrap'},
+      s('svg', {viewBox: '0 0 240 200', width: '100%', style: 'max-width:300px', role: 'img', 'aria-label': `${Math.round(frac * 100)}% of today's budget used`},
+        s('path', {d: arc(a0, a1), stroke: 'var(--line)', 'stroke-width': 16, fill: 'none', 'stroke-linecap': 'round'}),
+        frac > 0 ? s('path', {d: arc(a0, a0 + (a1 - a0) * Math.max(frac, .01)), stroke: color, 'stroke-width': 16, fill: 'none', 'stroke-linecap': 'round'}) : null),
+      h('div', {class: 'mid'}, h('b', {}, S.policy ? money(st.daily_remaining_cents) : '—'), h('span', {}, 'left today'))),
+    h('div', {class: 'gauge-legend'}, h('span', {}, `Used ${money(used)}`), h('span', {}, `${Math.round(frac * 100)}%`), h('span', {}, `Budget ${money(budget)}`)));
+}
+
+function renderFeed() {
+  const ev = [
+    ...S.settle.map((x) => ({t: x.created_at, kind: x.action, x})),
+    ...paidOrders().filter((o) => o.captured_at || o.created_at).map((o) => ({t: o.captured_at || o.created_at, kind: 'order', o})),
+  ].sort((a, b) => b.t - a.t).slice(0, 7);
+  if (!ev.length) { $('#feed').replaceChildren(h('li', {class: 'empty-note', style: 'display:block'}, h('b', {}, 'Quiet so far.'), 'Payments and refund decisions will stream in here.')); return; }
+  $('#feed').replaceChildren(...ev.map((e) => {
+    if (e.kind === 'order') {
+      const o = e.o;
+      return h('li', {}, h('div', {class: 'ic order'}, '$'), h('div', {style: 'min-width:0'}, h('div', {class: 't'}, `Order #${o.id} · ${o.title}`), h('div', {class: 'm'}, `${human(o.status).toLowerCase()} · ${o.guaranteed ? 'covered' : 'not covered'} · ${ago(e.t)}`)),
+        h('div', {class: 'amt'}, money(o.paid_cents), h('small', {}, 'paid')));
+    }
+    const x = e.x;
+    const refund = x.action === 'refund';
+    return h('li', {}, h('div', {class: 'ic ' + x.action}, refund ? '↩' : '✕'),
+      h('div', {style: 'min-width:0'}, h('div', {class: 't'}, refund ? `Refund sent · ${x.title}` : `Blocked · ${x.title}`), h('div', {class: 'm'}, `#${x.order_id} · ${human(x.reason)} · ${ago(e.t)}`)),
+      h('div', {class: 'amt'}, refund ? money(x.amount_cents) : '—', h('small', {}, refund ? human(x.status).toLowerCase() : 'guardrail')));
+  }));
+}
+
+function renderAttention() {
+  const items = [];
+  const failed = S.settle.filter((x) => x.status === 'FAILED');
+  const unknown = S.settle.filter((x) => x.status === 'pending_api');
+  const held = S.orders.filter((o) => /^CAPTURE_/.test(o.status) && o.status !== 'CAPTURE_FAILED');
+  if (!S.policy) items.push(['', 'No promise is live', 'New orders are not covered until you activate one.']);
+  if (failed.length) items.push(['bad', `${failed.length} refund${failed.length > 1 ? 's' : ''} failed`, 'PayPal rejected them. The reason is on each receipt in Refund decisions.']);
+  if (unknown.length) items.push(['', `${unknown.length} refund${unknown.length > 1 ? 's' : ''} awaiting PayPal`, 'The outcome is unknown; the watcher retries with the same key, so it can never pay twice.']);
+  if (held.length) items.push(['', `${held.length} payment${held.length > 1 ? 's' : ''} on hold at PayPal`, 'For example bank (eCheck) payments. They are not covered until completed.']);
+  if (!S.products.length) items.push(['', 'Your catalog is empty', 'Add a product so buyers have something to buy.']);
+  if (!items.length) items.push(['ok', 'All clear', 'No failed refunds, nothing stuck, budget available.']);
+  $('#attn').replaceChildren(...items.map(([cls, t, d]) => h('div', {class: cls}, h('span', {}, cls === 'ok' ? '✓' : cls === 'bad' ? '!' : '•'), h('span', {}, h('b', {}, t), d))));
+}
+
+// ---- promise ------------------------------------------------------------------------------------------------
+const EXAMPLES = [
+  'Refund the difference if the price drops within 14 days, up to $20 per order and $100 per day.',
+  'For 30 days after purchase, refund any price drop of at least 5%, capped at $50 per order and $500 per day.',
+  'Within 7 days, refund the difference up to $10 per order, with a $50 daily limit.',
+];
+$('#examples').replaceChildren(...EXAMPLES.map((t) => h('button', {type: 'button', onclick: () => { $('#promise-text').value = t; $('#promise-text').focus(); }}, t.length > 58 ? t.slice(0, 56) + '…' : t)));
+
+function renderContract() {
+  const pol = S.policy;
+  if (!pol) {
+    $('#contract').replaceChildren(h('div', {class: 'contract'}, h('div', {class: 'stamp off'}, 'Not live'), h('h3', {}, 'Current guarantee'),
+      h('blockquote', {}, 'No promise yet.'), h('p', {class: 'mut'}, 'Write one on the left. Say how many days it lasts and the most you will refund per order.')));
+    $('#promise-h').textContent = 'Write your first promise';
+    return;
+  }
+  const p = pol.policy;
+  const row = (k, v) => h('div', {}, h('dt', {}, k), h('dd', {}, v));
+  $('#promise-h').textContent = 'Replace it with a new promise';
+  $('#contract').replaceChildren(h('div', {class: 'contract'},
+    h('div', {class: 'stamp'}, 'In force'), h('h3', {}, 'Current guarantee'),
+    h('blockquote', {}, `“${pol.text}”`),
+    h('dl', {}, row('Window', `${p.window_days} days`), row('Max per order', dollars(p.max_refund_per_order)),
+      row('Daily budget', dollars(p.daily_budget)), row('Smallest drop', p.min_drop_pct ? `${p.min_drop_pct}%` : 'any')),
+    h('div', {class: 'sig'}, h('span', {}, `Since ${when(pol.created_at)}`), h('span', {}, `Read by ${pol.source === 'llm' ? 'AI model' : 'rule parser'} · reviewed by you`))));
+}
+
+let compiled = null;
+$('#compile').onclick = (ev) => busy(ev.currentTarget, async () => {
+  const text = $('#promise-text').value.trim();
+  if (!text) { $('#promise-text').focus(); throw new Error('Write the promise first.'); }
+  compiled = await post('/api/policy/compile', {text});
+  const p = compiled.policy;
+  const term = (id, label, val, unit, step) => h('div', {class: 'term'}, h('label', {for: id}, label),
+    h('div', {class: 'in'}, unit === '$' ? h('span', {class: 'unit'}, '$') : null, h('input', {id, type: 'number', step, min: 0, value: val, inputmode: 'decimal'}), unit !== '$' ? h('span', {class: 'unit'}, unit) : null));
+  const activate = h('button', {class: 'accent', type: 'button'}, 'Activate promise', h('span', {class: 'arrow'}, '→'));
+  const discard = h('button', {class: 'ghost', type: 'button', onclick: () => { compiled = null; $('#compiled').replaceChildren(); }}, 'Discard');
+  $('#compiled').replaceChildren(h('div', {class: 'sheet'},
+    h('div', {class: 'sheet-h'}, h('b', {}, 'Term sheet · check before going live'), chip(compiled.source === 'llm' ? 'read by AI model' : 'read by rules')),
+    h('div', {class: 'terms-grid'},
+      term('c-window', 'Window', p.window_days, 'days', '1'), term('c-cap', 'Max refund per order', p.max_refund_per_order, '$', '0.01'),
+      term('c-daily', 'Daily refund budget', p.daily_budget, '$', '0.01'), term('c-min', 'Ignore drops under', p.min_drop_pct, '%', '0.1')),
+    compiled.notes.length ? h('div', {class: 'sheet-notes'}, ...compiled.notes.map((n) => h('p', {}, n))) : null,
+    h('div', {class: 'actions'}, activate, discard)));
+  activate.onclick = () => busy(activate, async () => {
+    const policy = {kind: 'price_drop', window_days: +$('#c-window').value, max_refund_per_order: +$('#c-cap').value, daily_budget: +$('#c-daily').value, min_drop_pct: +$('#c-min').value};
+    await post('/api/policy/activate', {text: $('#promise-text').value.trim(), policy, source: compiled.source});
+    toast('Promise is live. New orders are covered; earlier orders keep the promise they bought under.');
+    compiled = null; $('#compiled').replaceChildren(); $('#promise-text').value = '';
+    await refresh();
+  });
+});
+
+// ---- catalog ------------------------------------------------------------------------------------------------
+function renderCatalog() {
+  const sim = (S.stats && S.stats.simulated_prices) || {};
+  $('#cat-count').textContent = `${S.products.length} product${S.products.length === 1 ? '' : 's'} on the storefront`;
+  if (!S.products.length) {
+    $('#pgrid').replaceChildren(h('div', {class: 'card empty-note', style: 'grid-column:1/-1'}, h('b', {}, 'No products yet.'), 'Add your first product, or import from Channel3 if you have a key.',
+      h('div', {style: 'margin-top:14px'}, h('button', {class: 'accent small', onclick: () => openDrawer()}, '+ Add product'))));
+    return;
+  }
+  const cats = [...new Set(S.products.map((p) => p.category || 'Uncategorised'))].sort();
+  if (S.catFilter && !cats.includes(S.catFilter)) S.catFilter = '';
+  $('#cat-list').replaceChildren(...cats.filter((c) => c !== 'Uncategorised').map((c) => h('option', {value: c})));
+  $('#cat-filters').replaceChildren(...[['', `All · ${S.products.length}`], ...cats.map((c) => [c, `${c} · ${S.products.filter((p) => (p.category || 'Uncategorised') === c).length}`])]
+    .map(([k, label]) => h('button', {type: 'button', 'aria-pressed': String((S.catFilter || '') === k), onclick: () => { S.catFilter = k; renderCatalog(); }}, label)));
+  const shown = S.products.filter((p) => !S.catFilter || (p.category || 'Uncategorised') === S.catFilter);
+  $('#pgrid').replaceChildren(...shown.map((p) => {
+    const covered = S.orders.filter((o) => o.product_id === p.id && o.guaranteed && o.status === 'CAPTURED').length;
+    const del = h('button', {class: 'x', type: 'button', 'aria-label': `Remove ${p.title}`}, 'Remove');
+    let armed = false;
+    del.onclick = () => {
+      if (!armed) { armed = true; del.classList.add('armed'); del.textContent = 'Click to confirm'; setTimeout(() => { armed = false; del.classList.remove('armed'); del.textContent = 'Remove'; }, 3000); return; }
+      busy(del, async () => { await api(`/api/products/${encodeURIComponent(p.id)}`, {method: 'DELETE'}); toast(`Removed “${p.title}”.`); await loadProducts(); await refresh(); });
+    };
+    const sp = sim[p.id];
+    return h('article', {class: 'pcard'},
+      productArt(p), del,
+      sp !== undefined ? h('span', {class: 'chip accent sim-flag', style: 'background:var(--card)'}, 'simulated price') : null,
+      h('div', {class: 'body'},
+        h('h3', {}, p.title),
+        h('div', {class: 'meta'}, chip(p.category || 'Uncategorised', p.category ? '' : 'warn'), p.source === 'channel3' ? chip('Channel3') : null,
+          covered ? chip(`${covered} covered order${covered > 1 ? 's' : ''}`, 'ok') : null),
+        h('div', {class: 'pr'}, sp !== undefined ? h('s', {}, money(p.price_cents)) : null, h('b', {class: sp !== undefined ? 'sim' : ''}, money(sp !== undefined ? sp : p.price_cents)),
+          h('button', {class: 'link', type: 'button', style: 'margin-left:auto', onclick: () => openDrawer(p)}, 'Edit'))));
+  }));
+}
+async function loadProducts() { S.products = await (await fetch('/api/products')).json(); }
+
+let editing = null;   // the product being edited, or null when adding
+function openDrawer(p) {
+  editing = p && p.id ? p : null;
+  $('#add-form').reset();
+  $('#drawer-h').textContent = editing ? 'Edit product' : 'Add a product';
+  $('#np-submit').textContent = editing ? 'Save changes' : 'Add to catalog';
+  $('#np-price').disabled = Boolean(editing);
+  $('#np-price-label').textContent = editing ? 'Price (USD) · locked' : 'Price (USD)';
+  $('#np-note').textContent = editing
+    ? 'The price is locked: for products you add by hand, the listed price is the market price, so changing it would count as a price drop and trigger refunds. Use the Price lab to test drops.'
+    : 'It appears on the storefront straight away.';
+  if (editing) {
+    $('#np-title').value = editing.title;
+    $('#np-price').value = (editing.price_cents / 100).toFixed(2);
+    $('#np-cat').value = editing.category || '';
+    $('#np-img').value = editing.image_url || '';
+  } else if (S.catFilter && S.catFilter !== 'Uncategorised') {
+    $('#np-cat').value = S.catFilter;
+  }
+  $('#drawer').classList.add('open'); $('#drawer-bg').classList.add('open'); $('#drawer').setAttribute('aria-hidden', 'false');
+  drawPreview(); setTimeout(() => $('#np-title').focus(), 200);
+}
+function closeDrawer() { $('#drawer').classList.remove('open'); $('#drawer-bg').classList.remove('open'); $('#drawer').setAttribute('aria-hidden', 'true'); }
+$('#open-add').onclick = () => openDrawer(); $('#close-add').onclick = closeDrawer; $('#drawer-bg').onclick = closeDrawer;
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+let pvTimer = null;
+function drawPreview() {
+  const p = {title: $('#np-title').value || 'Your product', image_url: $('#np-img').value.trim(), price_cents: Math.round((+$('#np-price').value || 0) * 100)};
+  $('#preview-tag').replaceChildren(productArt(p), h('div', {class: 'pv'}, h('b', {}, p.title), h('span', {}, money(p.price_cents))));
+}
+['#np-title', '#np-price', '#np-img'].forEach((id) => $(id).addEventListener('input', () => { clearTimeout(pvTimer); pvTimer = setTimeout(drawPreview, 250); }));
+$('#add-form').onsubmit = (ev) => {
+  ev.preventDefault();
+  const btn = ev.currentTarget.querySelector('button[type=submit]');
+  busy(btn, async () => {
+    const fields = {title: $('#np-title').value.trim(), image_url: $('#np-img').value.trim(), category: $('#np-cat').value.trim()};
+    if (editing) {
+      const p = await api(`/api/products/${encodeURIComponent(editing.id)}`, {method: 'PATCH', body: JSON.stringify(fields)});
+      toast(`Saved “${p.title}”.`);
+    } else {
+      const p = await post('/api/products', {...fields, image_url: fields.image_url || null, category: fields.category || null, price: +$('#np-price').value});
+      toast(`Added “${p.title}” at ${money(p.price_cents)}. It is on the storefront now.`);
+    }
+    editing = null;
+    ev.target.reset(); closeDrawer();
+    await loadProducts(); await refresh();
+  });
+};
+$('#import-c3').onclick = (ev) => busy(ev.currentTarget, async () => {
+  const r = await post('/api/catalog/refresh');
+  if (r.error) throw new Error(r.error);
+  toast(`Imported ${r.count} product(s) from Channel3` + (r.channel3_response_keys.length ? ` · response keys: ${r.channel3_response_keys.join(', ')}` : ''));
+  await loadProducts(); await refresh();
+});
+
+// ---- price lab ------------------------------------------------------------------------------------------------
+function renderLab() {
+  if (!S.products.length) {
+    $('#picker').replaceChildren(h('p', {class: 'mut'}, 'No products yet.'));
+    $('#lab-stage').replaceChildren(h('div', {class: 'empty-note'}, h('b', {}, 'Nothing to test yet.'), 'Add a product in the Catalog first.'));
+    return;
+  }
+  if (!productById(S.lab.id)) S.lab.id = S.products[0].id;
+  const sim = S.stats.simulated_prices || {};
+  $('#picker').replaceChildren(...S.products.map((p) => h('button', {class: 'pick', type: 'button', 'aria-pressed': String(p.id === S.lab.id), onclick: () => { S.lab.id = p.id; renderLab(); }},
+    productArt(p), h('div', {style: 'min-width:0'}, h('div', {class: 't'}, p.title), h('div', {class: 'p'}, money(p.price_cents), sim[p.id] !== undefined ? ` → ${money(sim[p.id])} sim` : '')))));
+  drawStage();
+}
+
+function drawStage() {
+  const p = productById(S.lab.id);
+  const pct = S.lab.pct;
+  const to = Math.round(p.price_cents * (1 - pct / 100));
+  const pol = S.policy && S.policy.policy;
+  const covered = S.orders.filter((o) => o.product_id === p.id && o.guaranteed && o.status === 'CAPTURED');
+  let est = 0;
+  for (const o of covered) {
+    const done = refundedFor(o.id);
+    const owed = Math.max(0, o.paid_cents - to - done);
+    const room = pol ? Math.max(0, Math.round(pol.max_refund_per_order * 100) - done) : owed;
+    est += Math.min(owed, room);
+  }
+  const sim = (S.stats.simulated_prices || {})[p.id];
+  const range = h('input', {type: 'range', min: 1, max: 80, value: pct, 'aria-label': 'Drop percent'});
+  range.style.setProperty('--fill', `${(pct / 80) * 100}%`);
+  range.oninput = () => { S.lab.pct = +range.value; drawStage(); };
+  const quick = h('div', {class: 'chips-row'}, ...[5, 10, 20, 30, 50].map((n) => h('button', {type: 'button', class: n === pct ? 'on' : null, onclick: () => { S.lab.pct = n; drawStage(); }}, `−${n}%`)));
+  const apply = h('button', {class: 'accent', type: 'button'}, 'Apply this drop');
+  apply.onclick = () => busy(apply, async () => {
+    const r = await post('/api/simulate/drop', {product_id: p.id, drop_pct: pct});
+    toast(`Simulated market price for ${p.title} is now ${money(r.simulated_price_cents)}. Run the watcher to settle.`);
+    await refresh();
+  });
+  const runBtn = h('button', {type: 'button'}, 'Run watcher now');
+  runBtn.onclick = () => runWatcher(runBtn);
+  const reset = h('button', {class: 'ghost', type: 'button'}, 'Clear simulated prices');
+  reset.onclick = () => busy(reset, async () => { await post('/api/simulate/reset', {}); toast('Simulated prices cleared. Market prices are back to normal.'); await refresh(); });
+
+  $('#lab-stage').replaceChildren(
+    h('div', {class: 'card-h'}, h('h2', {}, p.title), sim !== undefined ? chip(`currently simulated at ${money(sim)}`, 'accent') : chip('real price', '')),
+    h('div', {class: 'eyebrow'}, 'Market price after the drop'),
+    h('div', {class: 'bigline'}, h('s', {}, money(p.price_cents)), h('b', {}, money(to)), chip(`−${money(p.price_cents - to)}`, 'accent')),
+    priceChart(p.price_cents, to, pol),
+    h('div', {class: 'slider-row'}, h('label', {}, h('span', {}, 'Drop'), h('span', {}, `${pct}%`)), range),
+    quick,
+    h('div', {class: 'impact'},
+      h('div', {}, h('span', {class: 'eyebrow'}, 'Covered orders'), h('b', {}, String(covered.length)), h('div', {class: 'note'}, 'of this product')),
+      h('div', {}, h('span', {class: 'eyebrow'}, 'Would be refunded'), h('b', {style: 'color:var(--ok)'}, money(est)), h('div', {class: 'note'}, 'estimate, before the daily budget')),
+      h('div', {}, h('span', {class: 'eyebrow'}, 'Budget left today'), h('b', {}, S.policy ? money(S.stats.daily_remaining_cents) : '—'), h('div', {class: 'note'}, 'the watcher never goes past it'))),
+    h('div', {class: 'actions'}, apply, runBtn, reset),
+    h('p', {class: 'mut', style: 'font-size:12.5px;margin:14px 0 0'}, 'Simulated prices are stored apart from real ones, and every refund they cause is labelled “simulated” in the ledger.'));
+}
+
+function priceChart(from, to, pol) {
+  const W = 620, H = 170, L = 8, R = W - 70, top = 22, bot = H - 26;
+  const lo = Math.min(to, from - (pol ? Math.round(pol.max_refund_per_order * 100) : 0)) * .9;
+  const y = (c) => bot - ((c - lo) / (from - lo || 1)) * (bot - top);
+  const xDrop = L + (R - L) * .45;
+  const capY = pol ? y(from - Math.round(pol.max_refund_per_order * 100)) : null;
+  return s('svg', {class: 'pchart', viewBox: `0 0 ${W} ${H}`, width: '100%', role: 'img', 'aria-label': `Price falls from ${money(from)} to ${money(to)}`},
+    s('defs', {}, s('linearGradient', {id: 'gap', x1: 0, x2: 0, y1: 0, y2: 1}, s('stop', {offset: 0, 'stop-color': 'var(--accent)', 'stop-opacity': .28}), s('stop', {offset: 1, 'stop-color': 'var(--accent)', 'stop-opacity': .04}))),
+    s('rect', {x: xDrop, y: y(from), width: R - xDrop, height: Math.max(0, y(to) - y(from)), fill: 'url(#gap)'}),
+    capY !== null && capY > y(from) && capY < bot ? s('g', {}, s('line', {x1: xDrop, x2: R, y1: capY, y2: capY, stroke: 'var(--ok)', 'stroke-dasharray': '5 4', 'stroke-width': 1.5}),
+      s('text', {x: R + 6, y: capY + 4, fill: 'var(--ok)'}, 'cap')) : null,
+    s('path', {d: `M${L} ${y(from)} H${xDrop} L${xDrop + 26} ${y(to)} H${R}`, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2.5, 'stroke-linejoin': 'round'}),
+    s('line', {x1: xDrop, x2: R, y1: y(from), y2: y(from), stroke: 'var(--mut)', 'stroke-dasharray': '2 4'}),
+    s('circle', {cx: R, cy: y(to), r: 5, fill: 'var(--accent)'}),
+    s('text', {x: L, y: y(from) - 8}, `paid ${money(from)}`),
+    s('text', {x: R + 6, y: y(from) + 4}, 'before'),
+    s('text', {x: R + 6, y: y(to) + 4, fill: 'var(--accent)'}, money(to)),
+    s('text', {x: xDrop, y: H - 6}, 'drop'));
+}
+
+// ---- refunds ---------------------------------------------------------------------------------------------------
+function renderRefunds() {
+  const counts = {all: S.settle.length, refund: S.settle.filter((x) => x.action === 'refund').length, blocked: S.settle.filter((x) => x.action === 'blocked').length};
+  $('#filters').replaceChildren(...[['all', 'All'], ['refund', 'Refunds'], ['blocked', 'Blocked']].map(([k, label]) =>
+    h('button', {type: 'button', 'aria-pressed': String(S.filter === k), onclick: () => { S.filter = k; renderRefunds(); }}, `${label} · ${counts[k]}`)));
+  const rows = S.settle.filter((x) => S.filter === 'all' || x.action === S.filter);
+  if (!rows.length) { $('#slips').replaceChildren(h('div', {class: 'card empty-note'}, h('b', {}, 'No decisions yet.'), 'They appear when the watcher finds a lower price on a covered order. Try the Price lab.')); return; }
+  $('#slips').replaceChildren(...rows.map((x) => {
+    const refund = x.action === 'refund';
+    return h('div', {class: 'slip'}, h('div', {class: 'receipt'},
+      h('div', {class: 'top'}, h('span', {}, when(x.created_at)), h('span', {}, `#${x.order_id}`)),
+      h('div', {class: 'who'}, x.title),
+      h('div', {class: 'decision'}, chip(refund ? 'refund' : 'blocked', refund ? 'ok' : 'bad'), h('span', {class: 'amount ' + (refund ? 'ok' : 'no')}, refund ? money(x.amount_cents) : '$0.00')),
+      h('div', {style: 'color:var(--mut);font-size:12px'}, human(x.reason)),
+      h('div', {class: 'rule'}),
+      h('div', {class: 'line'}, h('span', {}, 'Market price'), h('span', {}, money(x.market_cents))),
+      h('div', {class: 'line'}, h('span', {}, 'Price source'), h('span', {}, x.price_source)),
+      refund ? h('div', {class: 'line'}, h('span', {}, 'PayPal'), statusChip(x.status)) : null,
+      refund && x.paypal_refund_id ? h('div', {class: 'line'}, h('span', {}, 'Refund ID'), h('span', {}, x.paypal_refund_id)) : null,
+      refund ? h('div', {class: 'line'}, h('span', {}, 'Webhook'), x.webhook_confirmed_at ? chip('confirmed', 'ok') : h('span', {class: 'mut'}, 'not yet')) : null,
+      x.explanation || x.error ? h('div', {class: 'rule'}) : null,
+      x.explanation ? h('div', {class: 'msg'}, x.explanation) : null,
+      x.error ? h('div', {class: 'msg err'}, x.error) : null));
+  }));
+}
+
+// ---- orders + webhooks -----------------------------------------------------------------------------------------
+function table(cols, rows, empty) {
+  if (!rows.length) return h('div', {class: 'empty-note'}, h('b', {}, empty[0]), empty[1]);
+  return h('table', {}, h('thead', {}, h('tr', {}, ...cols.map((c) => h('th', {class: c.num ? 'num' : null}, c.label)))),
+    h('tbody', {}, ...rows.map((r) => h('tr', {}, ...cols.map((c) => h('td', {class: c.num ? 'num' : null}, c.get(r)))))));
+}
+function renderOrders() {
+  const unfinished = S.orders.filter((o) => o.status === 'CREATED').length;
+  $('#order-tools').replaceChildren(h('span', {}, `${paidOrders().length} paid`),
+    h('label', {}, h('input', {type: 'checkbox', checked: S.showUnpaid, onchange: (e) => { S.showUnpaid = e.target.checked; renderOrders(); }}), `Show unfinished checkouts (${unfinished})`));
+  const rows = S.showUnpaid ? S.orders : paidOrders();
+  $('#orders-table').replaceChildren(table([
+    {label: '#', get: (r) => String(r.id)},
+    {label: 'Product', get: (r) => h('div', {}, h('div', {style: 'font-weight:600'}, r.title), h('div', {class: 'tiny'}, r.paypal_order_id))},
+    {label: 'Paid', num: true, get: (r) => money(r.paid_cents)},
+    {label: 'Status', get: (r) => statusChip(r.status)},
+    {label: 'Covered', get: (r) => r.guaranteed ? chip('covered', 'ok') : h('span', {class: 'mut'}, 'no')},
+    {label: 'Refunded', num: true, get: (r) => { const c = refundedFor(r.id); return c ? h('span', {style: 'color:var(--ok)'}, money(c)) : '—'; }},
+    {label: 'Captured', get: (r) => when(r.captured_at) || h('span', {class: 'mut'}, '—')},
+    {label: 'Webhook', get: (r) => r.capture_webhook_at ? chip('confirmed', 'ok') : h('span', {class: 'mut'}, '—')}], rows,
+    ['No paid orders yet.', 'Orders appear here once a buyer completes PayPal checkout on the storefront.']));
+}
+function renderLedger() {
+  $('#hook-url').textContent = `${location.origin}/api/webhooks/paypal`;
+  $('#ledger').replaceChildren(table([
+    {label: 'Received', get: (r) => when(r.received_at)},
+    {label: 'Event', get: (r) => h('span', {class: 'mono'}, r.event_type)},
+    {label: 'Resource', get: (r) => h('span', {class: 'mono'}, r.resource_id || '')},
+    {label: 'Signature', get: (r) => r.verified ? chip('verified', 'ok') : chip('unverified', 'bad')}], S.ledger,
+    ['No webhooks received yet.', 'Normal on localhost: PayPal cannot reach your computer. The steps below explain how to connect it.']));
+}
+
+// ---- watcher -----------------------------------------------------------------------------------------------------
+async function runWatcher(btn) {
+  await busy(btn, async () => {
+    const r = await post('/api/watch/run');
+    toast(`Checked ${r.checked} order(s): ${r.refunds} refunded, ${r.blocked} blocked by guardrails` + (r.recovered ? `, ${r.recovered} recovered.` : '.'));
+    await refresh();
+  });
+}
+$('#run').onclick = (ev) => runWatcher(ev.currentTarget);
+
+// ---- load --------------------------------------------------------------------------------------------------------
+async function refresh() {
+  const [pol, st, se, od, lg] = await Promise.all([api('/api/policy'), api('/api/stats'), api('/api/settlements'), api('/api/orders'), api('/api/ledger')]);
+  Object.assign(S, {policy: pol, stats: st, settle: se, orders: od, ledger: lg});
+  renderSide(); renderOverview(); renderContract(); renderCatalog(); renderRefunds(); renderOrders(); renderLedger();
+  if (current() !== 'lab' || !document.activeElement || document.activeElement.type !== 'range') renderLab();
+  renderMenu();
+}
+
+$('#brand').prepend(brandMark());
+$$('[data-photo]').forEach((e) => { e.style.backgroundImage = `url("${photo(e.dataset.photo, 1600)}")`; });
+$('#gate-pic').style.backgroundImage = `url("${photo('pos', 1400)}")`;
+showView();
+busy(null, async () => { await loadProducts(); await refresh(); });
+setInterval(() => { if (!tokenWait && !document.hidden && !$('#drawer').classList.contains('open')) refresh().catch(() => {}); }, 10000);
+</script>
+</body>
+</html>

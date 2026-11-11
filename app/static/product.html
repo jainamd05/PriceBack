@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PriceBack Product</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/pb.css">
+<link rel="stylesheet" href="/static/store.css">
+<style>
+.pd { padding: 112px 0 40px; }
+.crumbs { display: flex; gap: 10px; align-items: center; font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--mut); margin-bottom: 26px; }
+.crumbs a { text-decoration: none; }
+.pd-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); align-items: start; }
+.stage { position: sticky; top: 96px; border-radius: 28px; overflow: hidden; aspect-ratio: 4 / 5; background: #fff; isolation: isolate; }
+.stage .art { position: absolute; inset: 0; }
+.stage .art img { width: 100%; height: 100%; object-fit: cover; }
+.stage .mono-art span { font-size: clamp(200px, 30vw, 460px); }
+.stage .badge { position: absolute; left: 20px; top: 20px; z-index: 2; display: inline-flex; gap: 8px; align-items: center; padding: 9px 13px; border-radius: 999px; background: var(--night); color: var(--on-night); font: 600 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.stage .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); }
+
+.info h1 { font-size: clamp(42px, 5.6vw, 82px); line-height: .9; letter-spacing: -.055em; margin: 14px 0 22px; font-weight: 800; }
+.info .price { font: 600 clamp(36px, 4vw, 52px)/1 var(--mono); letter-spacing: -.05em; }
+.info .price small { font-size: .5em; color: var(--mut); }
+.buy-row { display: flex; gap: 12px; margin: 28px 0 14px; flex-wrap: wrap; }
+.buy-row button { flex: 1; min-width: 220px; padding: 18px 24px; font-size: 16px; }
+.small-print { color: var(--mut); font-size: 13px; }
+.protect { margin-top: 36px; border: 1.5px solid var(--ink); border-radius: 22px; overflow: hidden; }
+.protect-head { background: var(--ink); color: var(--paper); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.protect-head b { font-size: 17px; letter-spacing: -.02em; }
+.protect-body { padding: 22px 20px 24px; }
+.protect-body .slider-row label { display: flex; justify-content: space-between; font: 600 10.5px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mut); margin-bottom: 8px; }
+.protect-body .slider-row label b { color: var(--accent); font-size: 14px; letter-spacing: 0; }
+.outcome { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 18px; border-top: 1px dashed var(--line-2); }
+.outcome > div { padding: 16px 12px 0 0; }
+.outcome > div + div { padding-left: 14px; border-left: 1px dashed var(--line-2); }
+.outcome b { display: block; font: 600 22px/1.1 var(--mono); letter-spacing: -.04em; margin-top: 8px; }
+.outcome .get b { color: var(--accent); font-size: 28px; }
+.outcome-why { margin: 14px 0 0; font-size: 13px; color: var(--mut); }
+.timeline { list-style: none; padding: 0; margin: 40px 0 0; position: relative; }
+.timeline::before { content: ""; position: absolute; left: 11px; top: 8px; bottom: 8px; border-left: 2px dashed var(--line-2); }
+.timeline li { position: relative; padding: 0 0 22px 42px; }
+.timeline li::before { content: ""; position: absolute; left: 4px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); border: 2px solid var(--ink); }
+.timeline li:last-child::before { background: var(--accent); border-color: var(--accent); }
+.timeline .eyebrow { margin-bottom: 4px; }
+.timeline b { letter-spacing: -.01em; }
+.timeline p { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; }
+.more { margin-top: 90px; }
+.more-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.more-row .tile { grid-column: auto; grid-row: auto; height: 300px; }
+.more-row .tile h3 { font-size: 20px; }
+.missing { padding: 160px 0 100px; text-align: center; }
+.missing h1 { font-size: clamp(40px, 6vw, 80px); letter-spacing: -.05em; margin: 10px 0 18px; }
+@media (max-width: 900px) {
+  .pd-grid { grid-template-columns: 1fr; }
+  .stage { position: relative; top: 0; aspect-ratio: 1; }
+}
+@media (max-width: 480px) { .outcome { grid-template-columns: 1fr; } .outcome > div + div { border-left: 0; padding-left: 0; border-top: 1px dashed var(--line-2); padding-bottom: 12px; } }
+</style>
+</head>
+<body>
+<nav class="nav solid" id="nav">
+  <div class="wrap">
+    <a class="brand" href="/" id="brand">PriceBack</a>
+    <div class="nav-links">
+      <a href="/#shop" class="keep">Shop</a>
+      <a href="/#how">How it works</a>
+      <span class="chip dot">Sandbox</span>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap" id="main"><div class="pd"><div class="eyebrow">Loading…</div></div></main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <div>Refunds are issued through PayPal. Sandbox mode: no real money moves.</div>
+      <div><a href="/">← Back to the store</a></div>
+    </div>
+    <div class="foot-word" aria-hidden="true">Price<span>Back</span></div>
+    <div class="foot-bottom"><span>© PriceBack</span><span>Photography: <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a></span></div>
+  </div>
+</footer>
+
+<script src="/static/pb.js"></script>
+<script src="/static/store.js"></script>
+<script>
+const ID = decodeURIComponent(location.pathname.split('/').pop());
+
+function protection(p, g) {
+  const range = h('input', {type: 'range', id: 'drop', min: 0, max: 60, value: 20, 'aria-label': 'Price drop percent'});
+  const pctLabel = h('b', {}, '20%');
+  const out = h('div', {class: 'outcome'});
+  const why = h('p', {class: 'outcome-why'});
+  const draw = () => {
+    const pct = +range.value;
+    range.style.setProperty('--fill', `${(pct / 60) * 100}%`);
+    pctLabel.textContent = `${pct}%`;
+    const now = Math.round(p.price_cents * (1 - pct / 100));
+    const r = refundFor(p.price_cents, now, g);
+    out.replaceChildren(
+      h('div', {}, h('span', {class: 'eyebrow'}, 'New price'), h('b', {}, money(now))),
+      h('div', {}, h('span', {class: 'eyebrow'}, 'Difference'), h('b', {}, money(p.price_cents - now))),
+      h('div', {class: 'get'}, h('span', {class: 'eyebrow'}, 'Back to you'), h('b', {}, money(r.amount))));
+    why.textContent = r.why === 'capped' ? `Capped at ${dollars(g.max_refund_per_order)} per order, the most this guarantee pays.`
+      : r.why === 'full difference' ? 'You get the full difference back, automatically.'
+      : r.why === 'no drop' ? 'Drag the slider to imagine the price falling after you buy.' : `No refund: ${r.why}.`;
+  };
+  range.addEventListener('input', draw);
+  draw();
+  return h('section', {class: 'protect'},
+    h('div', {class: 'protect-head'}, h('b', {}, 'Price-drop protection'), h('span', {class: 'chip', style: 'color:inherit;border-color:currentColor'}, `${g.window_days} days · up to ${dollars(g.max_refund_per_order)}`)),
+    h('div', {class: 'protect-body'},
+      h('div', {class: 'slider-row'}, h('label', {for: 'drop'}, h('span', {}, 'If the price falls by'), pctLabel), range),
+      out, why));
+}
+
+function timeline(g) {
+  const step = (k, t, d) => h('li', {}, h('div', {class: 'eyebrow'}, k), h('b', {}, t), h('p', {}, d));
+  return h('ol', {class: 'timeline'},
+    step('Today', 'You pay with PayPal', 'The guarantee shown here is saved onto your order.'),
+    step(`Days 1–${g.window_days}`, 'The price is watched', 'Your order is checked against the market price.'),
+    step('If it drops', 'PayPal refunds the difference', `Straight to your account, up to ${dollars(g.max_refund_per_order)} in total. Nothing to claim.`));
+}
+
+function tile(p) {
+  return h('article', {class: 'tile'}, productArt(p),
+    h('a', {class: 'cover-link', href: `/product/${encodeURIComponent(p.id)}`, 'aria-label': p.title}),
+    h('div', {class: 'meta'}, h('div', {}, h('h3', {}, p.title), priceEl(p.price_cents, p.currency))));
+}
+
+async function load() {
+  initNav();
+  const [g, products] = await Promise.all([fetch('/api/guarantee').then((r) => r.json()), fetch('/api/products').then((r) => r.json())]);
+  const p = products.find((x) => x.id === ID);
+  if (!p) {
+    document.title = 'Not found · PriceBack';
+    $('#main').replaceChildren(h('div', {class: 'missing'}, h('div', {class: 'eyebrow'}, '404'),
+      h('h1', {}, 'This product is ', h('span', {class: 'serif', style: 'color:var(--accent)'}, 'gone.')),
+      h('p', {class: 'mut'}, 'It may have been removed from the store.'), h('a', {class: 'btn', href: '/#shop', style: 'margin-top:18px'}, 'Back to the shop', h('span', {class: 'arrow'}, '→'))));
+    return;
+  }
+  document.title = `${p.title} · PriceBack`;
+  const buy = h('button', {class: 'accent', type: 'button'}, 'Pay with PayPal', h('span', {class: 'arrow'}, '→'));
+  buy.addEventListener('click', () => checkout(p.id, buy));
+  const cat = p.category || 'Other';
+  const same = products.filter((x) => x.id !== p.id && (x.category || 'Other') === cat);
+  const others = [...same, ...products.filter((x) => x.id !== p.id && (x.category || 'Other') !== cat)].slice(0, 4);
+  const catUrl = '/?cat=' + encodeURIComponent(cat) + '#shop';
+  $('#main').replaceChildren(h('div', {class: 'pd'},
+    h('div', {class: 'crumbs'}, h('a', {href: '/'}, 'Store'), '/', h('a', {href: '/#shop'}, 'Shop'), '/', h('a', {href: catUrl}, cat), '/', h('span', {}, p.title)),
+    h('div', {class: 'pd-grid'},
+      h('div', {class: 'stage'}, productArt(p), g.active ? h('span', {class: 'badge'}, 'Price-drop protected') : null),
+      h('div', {class: 'info'},
+        h('div', {class: 'eyebrow'}, g.active ? `Protected for ${g.window_days} days after you buy` : 'Not covered by a guarantee right now'),
+        h('h1', {}, p.title),
+        priceEl(p.price_cents, p.currency),
+        h('div', {class: 'buy-row'}, buy),
+        h('div', {class: 'small-print'}, 'You approve the payment on PayPal and come straight back here.'),
+        g.active ? protection(p, g) : null,
+        g.active ? timeline(g) : null)),
+    others.length ? h('section', {class: 'more'},
+      h('div', {class: 'sec-head'}, h('div', {}, h('div', {class: 'eyebrow'}, 'Keep browsing'), h('h2', {style: 'font-size:clamp(32px,4vw,56px)'}, same.length ? 'More ' : 'More from the ', h('span', {class: 'serif'}, same.length ? cat.toLowerCase() + '.' : 'store.'))),
+        same.length ? h('a', {class: 'btn ghost small', href: catUrl}, 'See all ' + (same.length + 1), h('span', {class: 'arrow'}, '→')) : null),
+      h('div', {class: 'more-row'}, ...others.map((o) => tile(o)))) : null));
+  checkoutResult();
+}
+load().catch((e) => $('#main').replaceChildren(h('div', {class: 'missing'}, h('h1', {}, 'Could not load.'), h('p', {}, e.message))));
+</script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PriceBack Store</title>
+<meta name="description" content="Buy today. If the price drops, PayPal sends you the difference automatically.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/pb.css">
+<link rel="stylesheet" href="/static/store.css">
+<link rel="stylesheet" href="/static/shop.css">
+</head>
+<body>
+<nav class="nav over" id="nav">
+  <div class="wrap">
+    <a class="brand" href="/" id="brand">PriceBack</a>
+    <div class="nav-links">
+      <a href="#shop" class="keep">Shop</a>
+      <a href="#categories">Categories</a>
+      <a href="#how">How it works</a>
+      <a href="#calculator">Refund calculator</a>
+      <a href="#terms">The fine print</a>
+      <span class="chip dot">Sandbox</span>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="hero">
+  <div class="hero-bg" id="hero-bg"></div>
+  <div class="wrap" id="hero-inner"><div class="eyebrow">Loading…</div></div>
+  <div class="scroll-cue" aria-hidden="true">Scroll</div>
+</header>
+
+<main>
+  <section class="section tight" id="categories" hidden>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div><div class="eyebrow">Shop by category</div><h2>Find your <span class="serif">next upgrade.</span></h2></div>
+        <p>Everything here is price-drop protected from the moment you pay. Pick a category to start.</p>
+      </div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+  </section>
+
+  <section class="section tight" id="shop">
+    <div class="wrap">
+      <div class="shop-head">
+        <div><div class="eyebrow" id="count">The store</div><h2 id="shop-title">All products</h2></div>
+        <p id="shop-sub">Every product here is watched after you buy it. If the market price falls, the difference comes back to your PayPal.</p>
+      </div>
+      <div class="shop" id="shop-body">
+        <aside class="filters" id="filters" aria-label="Filters">
+          <div class="f-head"><b>Filters</b><span><button class="link" id="f-clear" type="button">Clear all</button> <button class="ghost small f-close" id="f-close" type="button">Done</button></span></div>
+          <label class="field"><span>Search</span><input id="f-q" type="search" placeholder="Search products…" autocomplete="off"></label>
+          <div><div class="f-title">Category</div><div id="f-cats"></div></div>
+          <div><div class="f-title">Price</div><div id="f-prices"></div></div>
+          <div class="f-note" id="f-note" hidden></div>
+        </aside>
+        <div class="results">
+          <div class="r-bar">
+            <button class="ghost small f-open" id="f-open" type="button">Filters</button>
+            <div class="r-count" id="r-count"></div>
+            <div class="active-chips" id="active-chips"></div>
+            <label class="sort"><span>Sort</span><select id="f-sort"></select></label>
+          </div>
+          <div class="pgrid-s" id="grid"></div>
+          <div class="more-wrap" id="more-wrap"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="scrim" id="scrim"></div>
+
+  <section class="section tight" id="how">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div><div class="eyebrow">How it works</div><h2>Three steps. <span class="serif">Zero claims.</span></h2></div>
+        <p>No forms, no screenshots of cheaper prices, no emails to support. The price is checked for you, and the refund is sent on its own.</p>
+      </div>
+      <div class="panels">
+        <article class="panel reveal"><div class="ph" data-photo="shopper"></div><div class="n">01</div>
+          <h3>You <span class="serif">buy</span> with PayPal.</h3><p>The guarantee in force at that moment is saved onto your order, so later changes never take it away.</p></article>
+        <article class="panel reveal"><div class="ph" data-photo="tags"></div><div class="n">02</div>
+          <h3>We <span class="serif">watch</span> the price.</h3><p id="how-2">Every covered order is checked against the market price until its guarantee window closes.</p></article>
+        <article class="panel reveal"><div class="ph" data-photo="terminal"></div><div class="n">03</div>
+          <h3>The drop <span class="serif">comes back.</span></h3><p id="how-3">If the price falls, a partial refund goes straight to your PayPal account. Automatically.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight" id="calculator" hidden>
+    <div class="wrap">
+      <div class="calc reveal">
+        <div>
+          <div class="eyebrow">Refund calculator</div>
+          <h2>What would you <span class="serif">get back?</span></h2>
+          <p>Pick a product and drag the slider to imagine its price falling after you buy. This uses the store's live guarantee, the same rules the refund engine applies.</p>
+          <label for="calc-product">Product</label>
+          <select id="calc-product"></select>
+          <div class="slider-row">
+            <label for="calc-drop">Price falls by <span class="pct" id="calc-pct">20%</span></label>
+            <input type="range" id="calc-drop" min="0" max="60" step="1" value="20">
+          </div>
+        </div>
+        <div class="receipt" id="calc-receipt" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight" id="terms" hidden>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div><div class="eyebrow">The fine print</div><h2>Short. <span class="serif">Honest.</span></h2></div>
+        <p>The whole guarantee fits on one line. Here it is, in numbers.</p>
+      </div>
+      <div class="terms-list reveal" id="terms-list"></div>
+      <p class="quote reveal" id="quote"></p>
+      <div class="eyebrow quote-by reveal">The store's promise, in its own words</div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <div>Refunds are issued through PayPal. Sandbox mode: no real money moves.</div>
+      <div><a href="/merchant">Merchant console →</a></div>
+    </div>
+    <div class="foot-word" aria-hidden="true">Price<span>Back</span></div>
+    <div class="foot-bottom"><span>© PriceBack</span><span>Photography: <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a></span></div>
+  </div>
+</footer>
+
+<script src="/static/pb.js"></script>
+<script src="/static/store.js"></script>
+<script>
+let G = {active: false};
+let P = [];
+
+function heroView() {
+  $('#hero-bg').style.backgroundImage = `url("${photo('saleTags', 2000)}")`;
+  const el = $('#hero-inner');
+  if (G.active) {
+    const cap = dollars(G.max_refund_per_order);
+    el.replaceChildren(
+      h('div', {},
+        h('div', {class: 'eyebrow'}, h('span', {class: 'chip live', style: 'color:#6fd3a0;border-color:rgba(111,211,160,.4)'}, 'Guarantee live'), `${G.window_days}-day price protection`),
+        h('h1', {}, 'Buy it today.', h('br'), 'Keep the ', h('span', {class: 'serif'}, 'drop.')),
+        h('p', {class: 'lede'}, 'If the price falls within ', h('b', {}, `${G.window_days} days`), ', PayPal sends you the difference, up to ', h('b', {}, cap), ' per order. You never have to ask.'),
+        h('div', {class: 'ctas'},
+          h('a', {class: 'btn accent', href: '#shop'}, 'Shop the collection', h('span', {class: 'arrow'}, '→')),
+          h('a', {class: 'btn ghost', href: '#calculator'}, 'Try the refund calculator'))),
+      seal(G.window_days));
+  } else {
+    el.replaceChildren(h('div', {},
+      h('div', {class: 'eyebrow'}, 'PriceBack store'),
+      h('h1', {}, 'Good things,', h('br'), h('span', {class: 'serif'}, 'fairly priced.')),
+      h('p', {class: 'off-note'}, 'No price-drop guarantee is active right now, so orders placed now are not covered.'),
+      h('div', {class: 'ctas', style: 'margin-top:24px'}, h('a', {class: 'btn accent', href: '#shop'}, 'Shop the collection', h('span', {class: 'arrow'}, '→')))));
+  }
+}
+
+function seal(days) {
+  const txt = `PRICE-DROP PROTECTED ✦ ${days} DAYS ✦ REFUND THE DIFFERENCE ✦ `;
+  return h('div', {class: 'seal', 'aria-hidden': 'true'},
+    s('svg', {viewBox: '0 0 220 220'},
+      s('defs', {}, s('path', {id: 'circ', d: 'M110,110 m-88,0 a88,88 0 1,1 176,0 a88,88 0 1,1 -176,0'})),
+      s('circle', {cx: 110, cy: 110, r: 108, fill: 'rgba(10,9,8,.45)', stroke: 'currentColor', 'stroke-width': 1.2}),
+      s('circle', {cx: 110, cy: 110, r: 68, fill: 'none', stroke: 'rgba(255,255,255,.3)', 'stroke-dasharray': '2 5'}),
+      s('g', {class: 'ring'}, s('text', {'font-family': 'IBM Plex Mono, monospace', 'font-size': 12.4, 'font-weight': 600, 'letter-spacing': 1.6, fill: 'currentColor'},
+        s('textPath', {href: '#circ', textLength: 548}, txt)))),
+    h('div', {class: 'core'}, h('b', {}, String(days)), h('span', {}, days === 1 ? 'day' : 'days')));
+}
+
+/* ---- shop: categories, filters, sort, paging ------------------------------------------------ */
+const CAT_ORDER = ['Headphones', 'Earbuds & Earphones', 'Phones & Tablets', 'Laptops & Monitors', 'Gaming & VR', 'Cameras & Drones',
+  'Wearables', 'Speakers', 'Keyboards & Mice', 'Cables & Chargers', 'Microphones'];
+const BANDS = [
+  {k: 'u50', label: 'Under $50', test: (c) => c < 5000},
+  {k: '50-100', label: '$50 to $100', test: (c) => c >= 5000 && c < 10000},
+  {k: '100-250', label: '$100 to $250', test: (c) => c >= 10000 && c < 25000},
+  {k: '250-500', label: '$250 to $500', test: (c) => c >= 25000 && c < 50000},
+  {k: '500+', label: '$500 and above', test: (c) => c >= 50000},
+];
+const SORTS = [['featured', 'Featured'], ['price-asc', 'Price: low to high'], ['price-desc', 'Price: high to low'], ['name', 'Name: A to Z']];
+const PAGE = 12;
+const F = {cat: 'all', q: '', bands: new Set(), sort: 'featured', shown: PAGE};
+const catOf = (p) => p.category || 'Other';
+const rank = (c) => { const i = CAT_ORDER.indexOf(c); return i < 0 ? 99 : i; };
+const allCats = () => [...new Set(P.map(catOf))].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+
+function matches(p, skip = '') {
+  if (skip !== 'cat' && F.cat !== 'all' && catOf(p) !== F.cat) return false;
+  if (F.q) { const q = F.q.toLowerCase(); if (!p.title.toLowerCase().includes(q) && !catOf(p).toLowerCase().includes(q)) return false; }
+  if (skip !== 'band' && F.bands.size && !BANDS.some((b) => F.bands.has(b.k) && b.test(p.price_cents))) return false;
+  return true;
+}
+/* "Featured": take turns between categories so the first page shows a bit of everything. */
+function featured(list) {
+  const groups = new Map();
+  for (const p of list) { if (!groups.has(catOf(p))) groups.set(catOf(p), []); groups.get(catOf(p)).push(p); }
+  const queues = [...groups.entries()].sort((a, b) => rank(a[0]) - rank(b[0]))
+    .map(([, g]) => g.sort((a, b) => (b.image_url ? 1 : 0) - (a.image_url ? 1 : 0) || b.price_cents - a.price_cents));
+  const out = [];
+  while (queues.some((q) => q.length)) for (const q of queues) if (q.length) out.push(q.shift());
+  return out;
+}
+function sortList(list) {
+  if (F.sort === 'price-asc') return [...list].sort((a, b) => a.price_cents - b.price_cents);
+  if (F.sort === 'price-desc') return [...list].sort((a, b) => b.price_cents - a.price_cents);
+  if (F.sort === 'name') return [...list].sort((a, b) => a.title.localeCompare(b.title));
+  return featured(list);
+}
+
+function categoriesView() {
+  const cats = allCats();
+  if (cats.length < 2) return;
+  $('#categories').hidden = false;
+  $('#cat-grid').replaceChildren(...cats.map((c) => {
+    const items = P.filter((p) => catOf(p) === c);
+    const cover = items.filter((p) => p.image_url).sort((a, b) => b.price_cents - a.price_cents)[0];
+    const ph = h('div', {class: 'ph'});
+    if (cover) ph.style.backgroundImage = `url("${cover.image_url.split('?')[0]}?w=900&q=70&auto=format&fit=crop")`;
+    return h('button', {class: 'cat reveal', type: 'button', onclick: () => { setFilter({cat: c}); $('#shop').scrollIntoView({behavior: 'smooth'}); }},
+      ph, h('b', {}, c),
+      h('span', {}, `${items.length} product${items.length === 1 ? '' : 's'} · from ${money(Math.min(...items.map((p) => p.price_cents)))}`, h('i', {}, '→')));
+  }));
+  // 4-column grid, first tile is 2x2: stretch the last tile so the final row has no holes
+  const cells = 4 + (cats.length - 1), gap = (4 - (cells % 4)) % 4;
+  const last = $('#cat-grid').lastElementChild;
+  if (gap && last && cats.length > 1) last.style.gridColumn = `span ${1 + gap}`;
+}
+
+function card(p) {
+  const url = `/product/${encodeURIComponent(p.id)}`;
+  const quick = h('button', {class: 'quick small', type: 'button'}, 'Pay with PayPal');
+  quick.addEventListener('click', () => checkout(p.id, quick));
+  return h('article', {class: 'pc'},
+    h('div', {style: 'position:relative'},
+      h('a', {class: 'pc-img', href: url, 'aria-label': p.title},
+        productArt(p), G.active ? h('span', {class: 'tag'}, `Protected ${G.window_days}d`) : null),
+      quick),
+    h('div', {class: 'pc-body'},
+      h('div', {class: 'pc-cat'}, catOf(p)),
+      h('a', {class: 'pc-title', href: url}, p.title),
+      h('div', {class: 'pc-row'}, priceEl(p.price_cents, p.currency),
+        G.active ? h('span', {class: 'back'}, `up to ${money(Math.min(p.price_cents, Math.round(G.max_refund_per_order * 100)))} back`) : null)));
+}
+
+function opt(label, n, pressed, onclick, radio) {
+  return h('button', {class: 'f-opt' + (radio ? ' radio' : ''), type: 'button', 'aria-pressed': String(pressed), disabled: !n && !pressed, onclick},
+    h('span', {class: 'lbl'}, h('span', {class: 'box', 'aria-hidden': 'true'}, radio ? '' : '✓'), label), h('span', {class: 'n'}, String(n)));
+}
+
+function shopView() {
+  if (!P.length) {
+    $('#shop-body').replaceChildren(h('div', {class: 'empty-shelf', style: `--bg:url("${photo('tags', 1600)}")`},
+      h('div', {}, h('b', {}, 'The shelves are being stocked.'), h('p', {}, 'This store has no products yet. Check back soon.'),
+        h('a', {class: 'btn', href: '/merchant'}, 'I run this store: add products', h('span', {class: 'arrow'}, '→')))));
+    return;
+  }
+  const cats = allCats();
+  $('#count').textContent = `The store · ${P.length} products · ${cats.length} categories`;
+  $('#shop-title').replaceChildren(...(F.cat === 'all' ? ['All ', h('span', {class: 'serif'}, 'products.')] : [F.cat]));
+
+  // filter lists, each with live counts
+  const inCat = P.filter((p) => matches(p, 'cat'));
+  $('#f-cats').replaceChildren(
+    opt('All products', inCat.length, F.cat === 'all', () => setFilter({cat: 'all'}), true),
+    ...cats.map((c) => opt(c, inCat.filter((p) => catOf(p) === c).length, F.cat === c, () => setFilter({cat: c}), true)));
+  const inBand = P.filter((p) => matches(p, 'band'));
+  $('#f-prices').replaceChildren(...BANDS.map((b) => opt(b.label, inBand.filter((p) => b.test(p.price_cents)).length, F.bands.has(b.k), () => {
+    const next = new Set(F.bands);
+    if (next.has(b.k)) next.delete(b.k); else next.add(b.k);
+    setFilter({bands: next});
+  })));
+  if (G.active) {
+    $('#f-note').hidden = false;
+    $('#f-note').replaceChildren(h('b', {}, `Every product is protected for ${G.window_days} days.`), ` If its price drops, you get up to ${dollars(G.max_refund_per_order)} back.`);
+  }
+
+  // results
+  const list = sortList(P.filter((p) => matches(p)));
+  const shown = list.slice(0, F.shown);
+  $('#r-count').replaceChildren('Showing ', h('b', {}, String(shown.length)), ` of ${list.length}`);
+  const chips = [];
+  if (F.cat !== 'all') chips.push([F.cat, () => setFilter({cat: 'all'})]);
+  if (F.q) chips.push([`“${F.q}”`, () => { $('#f-q').value = ''; setFilter({q: ''}); }]);
+  for (const b of BANDS) if (F.bands.has(b.k)) chips.push([b.label, () => { const n = new Set(F.bands); n.delete(b.k); setFilter({bands: n}); }]);
+  $('#active-chips').replaceChildren(...chips.map(([label, fn]) =>
+    h('button', {type: 'button', onclick: fn, 'aria-label': `Remove filter ${label}`}, label, h('span', {'aria-hidden': 'true'}, '×'))));
+  $('#grid').replaceChildren(...(shown.length ? shown.map(card) : [h('div', {class: 'no-results'}, h('b', {}, 'Nothing matches those filters.'),
+    'Try a different category or price range.', h('div', {}, h('button', {class: 'ghost', type: 'button', onclick: clearFilters}, 'Clear all filters')))]));
+  const more = $('#more-wrap');
+  more.replaceChildren();
+  if (list.length > PAGE) {
+    more.append(h('small', {}, `Showing ${shown.length} of ${list.length}`), h('div', {class: 'meter'}, h('i', {style: `width:${(shown.length / list.length) * 100}%`})));
+    if (shown.length < list.length) {
+      more.append(h('button', {class: 'ghost', type: 'button', onclick: () => { F.shown += PAGE; shopView(); }},
+        `Load ${Math.min(PAGE, list.length - shown.length)} more`));
+    }
+  }
+  syncUrl();
+}
+
+function setFilter(patch) { Object.assign(F, patch, {shown: PAGE}); shopView(); }
+function clearFilters() { $('#f-q').value = ''; setFilter({cat: 'all', q: '', bands: new Set()}); }
+function syncUrl() {
+  const q = new URLSearchParams();
+  if (F.cat !== 'all') q.set('cat', F.cat);
+  if (F.q) q.set('q', F.q);
+  if (F.bands.size) q.set('price', [...F.bands].join(','));
+  if (F.sort !== 'featured') q.set('sort', F.sort);
+  const qs = q.toString();
+  history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+}
+function readUrl() {
+  const q = new URLSearchParams(location.search);
+  if (q.get('cat') && P.some((p) => catOf(p) === q.get('cat'))) F.cat = q.get('cat');
+  if (q.get('q')) { F.q = q.get('q'); $('#f-q').value = F.q; }
+  if (q.get('price')) F.bands = new Set(q.get('price').split(',').filter((k) => BANDS.some((b) => b.k === k)));
+  if (SORTS.some(([k]) => k === q.get('sort'))) F.sort = q.get('sort');
+}
+function initShopControls() {
+  $('#f-sort').replaceChildren(...SORTS.map(([k, label]) => h('option', {value: k}, label)));
+  $('#f-sort').value = F.sort;
+  $('#f-sort').onchange = (e) => setFilter({sort: e.target.value});
+  let tmr = null;
+  $('#f-q').addEventListener('input', (e) => { clearTimeout(tmr); tmr = setTimeout(() => setFilter({q: e.target.value.trim()}), 160); });
+  $('#f-clear').onclick = clearFilters;
+  const open = (on) => { $('#filters').classList.toggle('open', on); $('#scrim').classList.toggle('open', on); };
+  $('#f-open').onclick = () => open(true);
+  $('#f-close').onclick = () => open(false);
+  $('#scrim').onclick = () => open(false);
+}
+
+function calcView() {
+  if (!G.active || !P.length) return;
+  $('#calculator').hidden = false;
+  const sel = $('#calc-product');
+  sel.replaceChildren(...allCats().map((c) => h('optgroup', {label: c},
+    ...P.filter((p) => catOf(p) === c).map((p) => h('option', {value: p.id}, `${p.title} · ${money(p.price_cents)}`)))));
+  const draw = () => {
+    const p = P.find((x) => x.id === sel.value) || P[0];
+    const pct = +$('#calc-drop').value;
+    $('#calc-pct').textContent = `${pct}%`;
+    $('#calc-drop').style.setProperty('--fill', `${(pct / 60) * 100}%`);
+    $('#calc-receipt').replaceChildren(...calcReceipt(p, pct, G));
+  };
+  sel.onchange = draw;
+  $('#calc-drop').oninput = draw;
+  draw();
+}
+
+function termsView() {
+  if (!G.active) return;
+  $('#terms').hidden = false;
+  const t = (big, label, text) => h('div', {}, h('div', {class: 'eyebrow'}, label), h('b', {}, big), h('p', {}, text));
+  $('#terms-list').replaceChildren(
+    t(`${G.window_days}d`, 'Window', 'Counted from the moment your PayPal payment completes.'),
+    t(dollars(G.max_refund_per_order), 'Max per order', 'Several drops add up, but never past this amount.'),
+    t(G.min_drop_pct ? `${G.min_drop_pct}%` : 'Any', 'Smallest drop', G.min_drop_pct ? 'Smaller drops are ignored.' : 'Even a small drop counts.'),
+    t('Auto', 'How you get it', 'A partial refund on your original PayPal payment. Nothing to claim.'));
+  $('#quote').textContent = G.text;
+  $('#how-2').textContent = `Every covered order is checked against the market price for ${G.window_days} days after you pay.`;
+  $('#how-3').textContent = `If the price falls, up to ${dollars(G.max_refund_per_order)} goes straight back to your PayPal account. Automatically.`;
+}
+
+async function load() {
+  initNav();
+  $$('[data-photo]').forEach((e) => { e.style.backgroundImage = `url("${photo(e.dataset.photo, 1100)}")`; });
+  const [g, products] = await Promise.all([fetch('/api/guarantee').then((r) => r.json()), fetch('/api/products').then((r) => r.json())]);
+  G = g; P = products;
+  readUrl(); initShopControls();
+  heroView(); categoriesView(); shopView(); calcView(); termsView();
+  // The browser jumps to #shop before the sections above it exist; jump again now that they do.
+  const target = location.hash.length > 1 && document.getElementById(location.hash.slice(1));
+  if (target) target.scrollIntoView({behavior: 'instant', block: 'start'});
+  revealOnScroll();
+  checkoutResult();
+}
+load().catch((e) => { $('#hero-inner').replaceChildren(h('div', {}, h('h1', {}, 'Store unavailable.'), h('p', {class: 'lede'}, e.message))); });
+</script>
+</body>
+</html>

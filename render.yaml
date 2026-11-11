@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: priceback
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/guarantee
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: PUBLIC_BASE_URL          # e.g. https://priceback.onrender.com
+        sync: false
+      - key: CHANNEL3_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: WATCH_INTERVAL_SECONDS
+        value: "60"
+      # NOTE: the free plan's disk is ephemeral, so the SQLite DB resets on each deploy.
+      # Fine for a demo. For durability attach a Render disk and point PRICEBACK_DB at it.
