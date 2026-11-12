@@ -129,7 +129,8 @@ function orderCard(o) {
 
   const parts = [h('div', {class: 'o-top'}, productArt({title: o.title, image_url: o.image_url}),
     h('div', {style: 'min-width:0'}, h('div', {class: 'o-meta'}, h('span', {class: 'eyebrow'}, `Order #${o.id}`), status,
-      covered ? chip(open ? 'price protected' : 'window closed', open ? 'accent' : '') : chip('not covered', 'warn')),
+      covered ? chip(open ? 'price protected' : 'window closed', open ? 'accent' : '') : chip('not covered', 'warn'),
+      o.testing ? chip('testing promise', 'warn') : null),
       h('h2', {}, h('a', {href: `/product/${encodeURIComponent(o.product_id)}`, style: 'text-decoration:none'}, o.title)),
       h('div', {class: 'mut', style: 'font:500 12px/1.4 var(--mono)'}, `Paid ${when(o.captured_at || o.created_at)}`)),
     h('div', {class: 'paid'}, money(o.paid_cents), h('small', {}, o.refunded_cents ? `${money(o.refunded_cents)} refunded` : 'nothing refunded yet')))];

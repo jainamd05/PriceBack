@@ -139,6 +139,13 @@ def _order_message(o: sqlite3.Row) -> tuple[str, str]:
                 "No price-drop guarantee was active when you paid, so this order is not covered.")
     p = Policy.model_validate_json(o["policy_json"])
     until = _date(o["captured_at"] + p.window_days * 86400)
+    if o["test_policy_id"]:
+        return (f"Order #{o['id']} confirmed: covered by your Testing promise ({p.window_days} days)",
+                f"Thanks for buying {o['title']} for ${paid}.\n\n"
+                "This order is covered by the Testing promise you created in the merchant console, not by the "
+                f"store's real guarantee. It works the same way: if the price falls before {until}, the difference "
+                f"(up to ${fmt_amount(to_cents(p.max_refund_per_order))}) is refunded in the PayPal sandbox and you get "
+                "an email, labelled as a test.")
     return (f"Order #{o['id']} confirmed: price protected for {p.window_days} days",
             f"Thanks for buying {o['title']} for ${paid}.\n\n"
             f"Your order is covered by our price-drop guarantee until {until}. If the price falls before then, "
@@ -157,6 +164,9 @@ def _settlement_message(x: sqlite3.Row) -> tuple[str, str, str] | None:
                    f"New price:     ${fmt_amount(x['market_cents'])}\n"
                    f"Refunded now:  ${amt}\n"
                    f"PayPal refund: {x['paypal_refund_id'] or 'processing'}")
+        if x["test_policy_id"]:
+            return ("refund_sent", f"[Testing promise] The price dropped. We refunded you ${amt}",
+                    f"Test refund under the Testing promise you created in the merchant console.\n\n{lines}\n\n{receipt}")
         return "refund_sent", f"The price dropped. We refunded you ${amt}", f"{lines}\n\n{receipt}"
     if x["action"] == "blocked":
         why = {
@@ -185,7 +195,8 @@ def collect(conn: sqlite3.Connection, now: int | None = None) -> list[int]:
         subject, text = _order_message(o)
         queue(o["buyer_email"], "order_confirmed", f"o{o['id']}", o["id"], subject, text)
     for x in conn.execute(
-            "SELECT s.*, o.buyer_email, o.title, o.paid_cents FROM settlements s JOIN orders o ON o.id=s.order_id"
+            "SELECT s.*, o.buyer_email, o.title, o.paid_cents, o.test_policy_id FROM settlements s"
+            " JOIN orders o ON o.id=s.order_id"
             " WHERE o.buyer_email IS NOT NULL AND s.status!='pending_api'"
             " AND NOT EXISTS (SELECT 1 FROM notifications n WHERE n.ref='s' || s.id)").fetchall():
         m = _settlement_message(x)

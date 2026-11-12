@@ -37,6 +37,8 @@ services:
         sync: false
       - key: DEMO_SELF_SERVE
         value: "true"
+      - key: DEMO_MERCHANT_GUEST      # judges can open the console as a guest (no catalog access)
+        value: "true"
       - key: SEED_CATALOG             # reload the catalog + price promise into the empty DB on start
         value: "true"
       # NOTE: the free plan's disk is ephemeral: the SQLite DB resets on every deploy, restart and

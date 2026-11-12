@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import asyncio
 import hmac
+import secrets
 import json
 import logging
 import time
+from collections import deque
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 
@@ -66,10 +68,64 @@ def require_shopper(email: str | None = Depends(current_shopper)) -> str:
     return email
 
 
-def require_admin(x_admin_token: str = Header(default="")) -> None:
-    token = get_settings().admin_token
-    if token and not hmac.compare_digest(x_admin_token, token):
-        raise HTTPException(401, "Missing or invalid admin token.")
+def _is_owner(token: str) -> bool:
+    expected = get_settings().admin_token
+    return not expected or (bool(token) and hmac.compare_digest(token.encode(), expected.encode()))
+
+
+def require_admin(x_admin_token: str = Header(default=""), x_demo_guest: str = Header(default="")) -> None:
+    """Owner only: the catalog."""
+    if _is_owner(x_admin_token):
+        return
+    if x_demo_guest == "1" and get_settings().demo_merchant_guest:
+        raise HTTPException(403, "Guest mode can't change the catalog. Unlock the console with the admin token to do that.")
+    raise HTTPException(401, "Missing or invalid admin token.")
+
+
+GUEST_COOKIE = "pb_gid"
+
+
+class Merchant(BaseModel):
+    role: str                   # "owner" | "guest"
+    guest_id: str | None = None
+
+
+def merchant_role(response: Response, x_admin_token: str = Header(default=""), x_demo_guest: str = Header(default=""),
+                  pb_gid: str | None = Cookie(default=None)) -> Merchant:
+    """Owner, or a guest when DEMO_MERCHANT_GUEST is on: the console, the promise and the price lab.
+
+    Each guest browser gets a random id cookie, so its Testing promise is shown only in that browser's store."""
+    if _is_owner(x_admin_token):
+        return Merchant(role="owner")
+    if x_demo_guest == "1" and get_settings().demo_merchant_guest:
+        gid = pb_gid if pb_gid and len(pb_gid) == 32 and pb_gid.isalnum() else None
+        if not gid:
+            gid = secrets.token_hex(16)
+            response.set_cookie(GUEST_COOKIE, gid, max_age=7 * 86400, httponly=True, samesite="lax",
+                                secure=get_settings().public_base_url.startswith("https://"))
+        return Merchant(role="guest", guest_id=gid)
+    raise HTTPException(401, "Missing or invalid admin token.")
+
+
+GUEST_COMPILES_PER_HOUR = 30
+_guest_compiles: deque[float] = deque()
+
+
+def _guest_compile_allowed(now: float) -> bool:
+    """Every guest shares one hourly allowance of AI promise compiles, so the Gemini quota can't be drained."""
+    while _guest_compiles and _guest_compiles[0] < now - 3600:
+        _guest_compiles.popleft()
+    if len(_guest_compiles) >= GUEST_COMPILES_PER_HOUR:
+        return False
+    _guest_compiles.append(now)
+    return True
+
+
+def _mask_email(e: str | None) -> str | None:
+    if not e or "@" not in e:
+        return e
+    name, domain = e.split("@", 1)
+    return f"{name[:2]}•••@{domain}"
 
 
 def _watch_blocking() -> dict:
@@ -148,13 +204,16 @@ def products(conn=Depends(get_conn)):
 
 
 @app.get("/api/guarantee")
-def guarantee(conn=Depends(get_conn)):
-    row = policy_mod.get_active(conn)
+def guarantee(conn=Depends(get_conn), pb_gid: str | None = Cookie(default=None)):
+    """The promise this browser shoppers see: a console guest sees their own Testing promise, labelled so."""
+    row = policy_mod.get_for(conn, pb_gid)
     if not row:
-        return {"active": False}
+        return {"active": False, "testing": False}
     p = Policy.model_validate_json(row["policy_json"])
+    testing = row["guest_id"] is not None
     return {"active": True, "text": row["text"], "window_days": p.window_days,
-            "max_refund_per_order": p.max_refund_per_order, "min_drop_pct": p.min_drop_pct}
+            "max_refund_per_order": p.max_refund_per_order, "min_drop_pct": p.min_drop_pct,
+            "testing": testing, "expires_at": row["expires_at"] if testing else None}
 
 
 class CheckoutIn(BaseModel):
@@ -184,7 +243,8 @@ def checkout(body: CheckoutIn, shopper: str = Depends(require_shopper), conn=Dep
 
 
 @app.get("/checkout/return", include_in_schema=False)
-def checkout_return(token: str, conn=Depends(get_conn), pp: PayPalClient = Depends(get_paypal)):
+def checkout_return(token: str, conn=Depends(get_conn), pp: PayPalClient = Depends(get_paypal),
+                    pb_gid: str | None = Cookie(default=None)):
     order = conn.execute("SELECT * FROM orders WHERE paypal_order_id=?", (token,)).fetchone()
     if not order:
         return RedirectResponse("/?error=unknown_order")
@@ -208,10 +268,12 @@ def checkout_return(token: str, conn=Depends(get_conn), pp: PayPalClient = Depen
         conn.execute("UPDATE orders SET status='AMOUNT_MISMATCH', capture_id=? WHERE id=?",
                      (cap["capture_id"], order["id"]))
     else:
-        active = policy_mod.get_active(conn)  # snapshot the promise in force right now
+        active = policy_mod.get_for(conn, pb_gid)  # snapshot the promise in force for this buyer right now
+        test_id = active["id"] if active and active["guest_id"] else None
         conn.execute(
-            "UPDATE orders SET status='CAPTURED', capture_id=?, captured_at=?, policy_json=? WHERE id=?",
-            (cap["capture_id"], int(time.time()), active["policy_json"] if active else None, order["id"]))
+            "UPDATE orders SET status='CAPTURED', capture_id=?, captured_at=?, policy_json=?, test_policy_id=?"
+            " WHERE id=?",
+            (cap["capture_id"], int(time.time()), active["policy_json"] if active else None, test_id, order["id"]))
         notify.flush(conn)  # "order confirmed, price protected until …"
     return RedirectResponse(f"/?paid={order['id']}")
 
@@ -227,7 +289,8 @@ def demo_info():
     """What a tester needs to try the prototype: the PayPal *sandbox* buyer login (fake money only)."""
     s = get_settings()
     return {"buyer_email": s.demo_buyer_email or None, "buyer_password": s.demo_buyer_password or None,
-            "self_serve_drops": s.demo_self_serve, "email_enabled": notify.email_configured()}
+            "self_serve_drops": s.demo_self_serve, "email_enabled": notify.email_configured(),
+            "merchant_guest": s.demo_merchant_guest}
 
 
 class AuthStartIn(BaseModel):
@@ -292,6 +355,7 @@ def _my_order(conn, o) -> dict:
     out = {k: o[k] for k in ("id", "product_id", "title", "paid_cents", "currency", "status", "created_at", "captured_at")}
     out["image_url"] = (conn.execute("SELECT image_url FROM products WHERE id=?", (o["product_id"],)).fetchone() or {"image_url": None})["image_url"]
     out["covered"] = bool(o["policy_json"])
+    out["testing"] = bool(o["test_policy_id"])  # bought under a console guest's Testing promise
     out["window_days"] = out["cover_ends_at"] = out["max_refund_cents"] = None
     if o["policy_json"]:
         p = Policy.model_validate_json(o["policy_json"])
@@ -367,15 +431,18 @@ async def paypal_webhook(request: Request, pp: PayPalClient = Depends(get_paypal
 
 
 # ---- merchant API ------------------------------------------------------------------------
-admin = [Depends(require_admin)]
+admin = [Depends(require_admin)]        # owner only
+merchant = [Depends(merchant_role)]     # owner, or a guest in demo mode
 
 
 class CompileIn(BaseModel):
     text: str
 
 
-@app.post("/api/policy/compile", dependencies=admin)
-def policy_compile(body: CompileIn):
+@app.post("/api/policy/compile")
+def policy_compile(body: CompileIn, who: Merchant = Depends(merchant_role)):
+    if who.role == "guest" and not _guest_compile_allowed(time.time()):
+        raise HTTPException(429, "Guests have used this hour's AI promise previews. Try again later.")
     try:
         return policy_mod.compile_policy(body.text)
     except policy_mod.PolicyError as e:
@@ -388,15 +455,33 @@ class ActivateIn(BaseModel):
     source: str = "rules"
 
 
-@app.post("/api/policy/activate", dependencies=admin)
-def policy_activate(body: ActivateIn, conn=Depends(get_conn)):
-    pid = policy_mod.activate(conn, body.text, body.policy, body.source if body.source in ("llm", "rules") else "rules")
-    return {"id": pid, "active": True}
+@app.post("/api/policy/activate")
+def policy_activate(body: ActivateIn, conn=Depends(get_conn), who: Merchant = Depends(merchant_role)):
+    source = body.source if body.source in ("llm", "rules") else "rules"
+    if who.role == "guest":  # a Testing promise: only this guest's browser sees it, and it ends after 3 hours
+        policy, lowered = policy_mod.clamp_test(body.policy)
+        row = policy_mod.activate_test(conn, who.guest_id, body.text, policy, source)
+        return {"id": row["id"], "active": True, "testing": True, "expires_at": row["expires_at"],
+                "policy": policy.model_dump(), "lowered": lowered, "limits": policy_mod.TEST_LIMITS}
+    pid = policy_mod.activate(conn, body.text, body.policy, source)
+    return {"id": pid, "active": True, "testing": False}
 
 
-@app.get("/api/policy", dependencies=admin)
-def policy_get(conn=Depends(get_conn)):
-    return policy_mod.policy_row_to_dict(policy_mod.get_active(conn))
+@app.post("/api/policy/test/end")
+def policy_test_end(conn=Depends(get_conn), who: Merchant = Depends(merchant_role)):
+    if who.role == "guest":
+        policy_mod.end_test(conn, who.guest_id)
+    return {"ok": True}
+
+
+@app.get("/api/policy")
+def policy_get(conn=Depends(get_conn), who: Merchant = Depends(merchant_role)):
+    """The owner sees the store's promise; a guest sees their own Testing promise while it lasts."""
+    row = policy_mod.get_for(conn, who.guest_id) if who.role == "guest" else policy_mod.get_active(conn)
+    out = policy_mod.policy_row_to_dict(row)
+    if out is not None and who.role == "guest" and not out["testing"]:
+        out["store_promise"] = True  # nothing of their own yet: they're looking at the real promise
+    return out
 
 
 @app.post("/api/catalog/refresh", dependencies=admin)
@@ -455,7 +540,7 @@ class DropIn(BaseModel):
     new_price: float | None = Field(default=None, gt=0)
 
 
-@app.post("/api/simulate/drop", dependencies=admin)
+@app.post("/api/simulate/drop", dependencies=merchant)
 def simulate_drop(body: DropIn, conn=Depends(get_conn)):
     try:
         cents = prices.simulate_drop(conn, body.product_id, drop_pct=body.drop_pct, new_price=body.new_price)
@@ -470,38 +555,43 @@ class ResetIn(BaseModel):
     product_id: str | None = None
 
 
-@app.post("/api/simulate/reset", dependencies=admin)
+@app.post("/api/simulate/reset", dependencies=merchant)
 def simulate_reset(body: ResetIn, conn=Depends(get_conn)):
     prices.reset_simulation(conn, body.product_id)
     return {"ok": True}
 
 
-@app.post("/api/watch/run", dependencies=admin)
+@app.post("/api/watch/run", dependencies=merchant)
 def watch_run(conn=Depends(get_conn), pp: PayPalClient = Depends(get_paypal)):
     r = run_watch_once(conn, pp)
     notify.flush(conn)
     return r
 
 
-@app.get("/api/notifications", dependencies=admin)
-def notifications_all(conn=Depends(get_conn)):
-    return _rows(conn, "SELECT id, email, kind, order_id, subject, status, channel, error, created_at, sent_at"
+@app.get("/api/notifications")
+def notifications_all(conn=Depends(get_conn), who: Merchant = Depends(merchant_role)):
+    rows = _rows(conn, "SELECT id, email, kind, order_id, subject, status, channel, error, created_at, sent_at"
                        " FROM notifications ORDER BY id DESC LIMIT 200")
+    if who.role == "guest":  # guests never see other testers' email addresses
+        for r in rows:
+            r["email"] = _mask_email(r["email"])
+    return rows
 
 
 def _rows(conn, sql: str, args: tuple = ()) -> list[dict]:
     return [dict(r) for r in conn.execute(sql, args).fetchall()]
 
 
-@app.get("/api/orders", dependencies=admin)
+@app.get("/api/orders", dependencies=merchant)
 def orders(conn=Depends(get_conn)):
     out = []
     for r in conn.execute("SELECT id, paypal_order_id, capture_id, product_id, title, paid_cents, currency, status,"
-                          " policy_json, created_at, captured_at, capture_webhook_at"
+                          " policy_json, test_policy_id, created_at, captured_at, capture_webhook_at"
                           " FROM orders ORDER BY id DESC LIMIT 200").fetchall():
         o = dict(r)
         pj = o.pop("policy_json")
         o["guaranteed"] = int(pj is not None)
+        o["testing"] = bool(o.pop("test_policy_id"))
         o["window_days"] = o["cover_ends_at"] = o["max_refund_cents"] = None
         if pj:  # the promise this order bought under, so the console can draw its protection window
             p = Policy.model_validate_json(pj)
@@ -513,21 +603,22 @@ def orders(conn=Depends(get_conn)):
     return out
 
 
-@app.get("/api/settlements", dependencies=admin)
+@app.get("/api/settlements", dependencies=merchant)
 def settlements(conn=Depends(get_conn)):
-    return _rows(conn, "SELECT s.id, s.order_id, o.title, s.action, s.amount_cents, s.reason, s.market_cents,"
+    return _rows(conn, "SELECT s.id, s.order_id, o.title, o.test_policy_id IS NOT NULL AS testing, s.action,"
+                       " s.amount_cents, s.reason, s.market_cents,"
                        " s.price_source, s.status, s.paypal_refund_id, s.explanation, s.error,"
                        " s.webhook_confirmed_at, s.created_at FROM settlements s JOIN orders o ON o.id=s.order_id"
                        " ORDER BY s.id DESC LIMIT 200")
 
 
-@app.get("/api/ledger", dependencies=admin)
+@app.get("/api/ledger", dependencies=merchant)
 def ledger(conn=Depends(get_conn)):
     return _rows(conn, "SELECT event_id, event_type, resource_id, verified, received_at FROM webhook_events"
                        " ORDER BY received_at DESC LIMIT 200")
 
 
-@app.get("/api/stats", dependencies=admin)
+@app.get("/api/stats", dependencies=merchant)
 def stats(conn=Depends(get_conn)):
     now = int(time.time())
     day_start = now - now % 86400
@@ -542,9 +633,10 @@ def stats(conn=Depends(get_conn)):
         p = Policy.model_validate_json(o["policy_json"])
         if o["captured_at"] and now <= o["captured_at"] + p.window_days * 86400:
             exposure += max(0, min(to_cents(p.max_refund_per_order), o["paid_cents"]) - refunded_by_order.get(o["id"], 0))
-    refunded_today = conn.execute(
-        "SELECT COALESCE(SUM(amount_cents),0) FROM settlements WHERE action='refund' AND status!='FAILED'"
-        " AND created_at>=?", (day_start,)).fetchone()[0]
+    refunded_today = conn.execute(  # against the store's real budget: Testing promises have their own
+        "SELECT COALESCE(SUM(s.amount_cents),0) FROM settlements s JOIN orders o ON o.id=s.order_id"
+        " WHERE s.action='refund' AND s.status!='FAILED' AND s.created_at>=? AND o.test_policy_id IS NULL",
+        (day_start,)).fetchone()[0]
     return {
         "guaranteed_orders": len(guaranteed),
         "revenue_cents": sum(o["paid_cents"] for o in guaranteed),

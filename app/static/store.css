@@ -193,6 +193,9 @@
 .demo-badge-text { grid-column: 1 / -1; color: var(--ink-2); }
 .demo-badge-t { grid-column: 2; grid-row: 1; background: none; border: 0; padding: 0; color: inherit; font: inherit; font-size: 11.5px; text-decoration: underline; cursor: pointer; }
 .demo-badge.min { padding: 8px 12px; }
+.demo-test { grid-column: 1 / -1; margin-top: 6px; padding-top: 8px; border-top: 1px dashed color-mix(in srgb, var(--warn) 35%, transparent); color: var(--ink-2); }
+.demo-test b { display: block; color: var(--warn); margin-bottom: 2px; }
+.demo-test .link { color: var(--warn); font: inherit; padding: 0; text-decoration: underline; }
 .demo-badge.min .demo-badge-text { display: none; }
 @media (max-width: 560px) { .demo-badge { left: 12px; right: 12px; bottom: 12px; max-width: none; } }
 .acct-btn, .acct-link { white-space: nowrap; }

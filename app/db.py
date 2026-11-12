@@ -154,6 +154,12 @@ def init_db() -> None:
         ocols = {r["name"] for r in conn.execute("PRAGMA table_info(orders)")}
         if "buyer_email" not in ocols:  # databases created before shopper accounts existed
             conn.execute("ALTER TABLE orders ADD COLUMN buyer_email TEXT")
+        if "test_policy_id" not in ocols:  # set when the order was bought under a guest's Testing promise
+            conn.execute("ALTER TABLE orders ADD COLUMN test_policy_id INTEGER")
+        pcols = {r["name"] for r in conn.execute("PRAGMA table_info(policies)")}
+        if "guest_id" not in pcols:  # Testing promises made by console guests: private to them, short-lived
+            conn.execute("ALTER TABLE policies ADD COLUMN guest_id TEXT")
+            conn.execute("ALTER TABLE policies ADD COLUMN expires_at INTEGER")
 
 
 SEED_FILE = Path(__file__).with_name("seed_catalog.json")

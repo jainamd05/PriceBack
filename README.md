@@ -47,7 +47,7 @@ validated `Policy` reaches the refund path, and every amount is computed by dete
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
 cp .env.example .env          # fill in what you have
-pytest -q                     # 56 tests, no network
+pytest -q                     # 65 tests, no network
 uvicorn app.main:app --reload # http://localhost:8000  (store)   /merchant (dashboard)
 ```
 
@@ -86,6 +86,20 @@ Emails go out through **SMTP with Python's `smtplib`** (e.g. Gmail with an app p
 a `notifications` outbox with a unique key, so a shopper is never emailed twice for the same event. If `ZAPIER_HOOK_URL`
 is set, every event is **also POSTed to a Zapier Catch Hook** as JSON (`event`, `email`, `subject`, `message`, `order_id`,
 `account_url`), ready for any Zap (Slack, Google Sheets, SMS…). Sign-in codes are never sent to Zapier.
+
+## Try it as a merchant (for judges)
+
+Open `/merchant` and click **Explore as a guest** (on when `DEMO_MERCHANT_GUEST=true`, as in `render.yaml`). Guests see the
+overview, refund decisions, orders, coverage timeline and webhooks, and can drop prices in the **Price lab** and run the
+watcher, which refunds every covered buyer of that product. Only the owner (`ADMIN_TOKEN`) can add, edit, remove or import
+products. Guests see shoppers' emails masked (`ju•••@example.com`) and share an hourly allowance of AI promise previews.
+
+**Testing promises.** A promise a guest activates never replaces the store's real one. It becomes a *Testing promise*:
+shown only in that guest's browser (a random `pb_gid` cookie), labelled "Testing promise (yours)" on the store, and gone
+after **3 hours**. Orders placed under it use its terms, are labelled Testing in the console, on *My orders* and in the
+emails, and draw on the test promise's own daily budget, never the store's. Guest promises are held to demo limits
+(≤ 30 days, ≤ $100 per order, ≤ $200 a day). So a judge can write a promise, buy under it and watch the refund, while other
+shoppers keep seeing the real guarantee.
 
 ## API
 

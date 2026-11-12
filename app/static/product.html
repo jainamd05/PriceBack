@@ -112,7 +112,7 @@ function protection(p, g) {
   range.addEventListener('input', draw);
   draw();
   return h('section', {class: 'protect'},
-    h('div', {class: 'protect-head'}, h('b', {}, 'Price-drop protection'), h('span', {class: 'chip', style: 'color:inherit;border-color:currentColor'}, `${g.window_days} days · up to ${dollars(g.max_refund_per_order)}`)),
+    h('div', {class: 'protect-head'}, h('b', {}, g.testing ? 'Testing promise (yours)' : 'Price-drop protection'), h('span', {class: 'chip', style: 'color:inherit;border-color:currentColor'}, `${g.testing ? 'test · ' : ''}${g.window_days} days · up to ${dollars(g.max_refund_per_order)}`)),
     h('div', {class: 'protect-body'},
       h('div', {class: 'slider-row'}, h('label', {for: 'drop'}, h('span', {}, 'If the price falls by'), pctLabel), range),
       out, why));

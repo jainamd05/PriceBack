@@ -147,7 +147,8 @@ function heroView() {
     const cap = dollars(G.max_refund_per_order);
     el.replaceChildren(
       h('div', {},
-        h('div', {class: 'eyebrow'}, h('span', {class: 'chip live', style: 'color:#6fd3a0;border-color:rgba(111,211,160,.4)'}, 'Guarantee live'), `${G.window_days}-day price protection`),
+        h('div', {class: 'eyebrow'}, G.testing ? h('span', {class: 'chip', style: 'color:#f4c46b;border-color:rgba(244,196,107,.5)'}, 'Testing promise (yours)')
+          : h('span', {class: 'chip live', style: 'color:#6fd3a0;border-color:rgba(111,211,160,.4)'}, 'Guarantee live'), `${G.window_days}-day price protection`),
         h('h1', {}, 'Buy it today.', h('br'), 'Keep the ', h('span', {class: 'serif'}, 'drop.')),
         h('p', {class: 'lede'}, 'If the price falls within ', h('b', {}, `${G.window_days} days`), ', PayPal sends you the difference, up to ', h('b', {}, cap), ' per order. You never have to ask.'),
         h('div', {class: 'ctas'},

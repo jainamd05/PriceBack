@@ -291,6 +291,16 @@ td .tiny { font: 500 11.5px/1.4 var(--mono); color: var(--mut); }
 .gate form h3 { font-size: 30px; letter-spacing: -.04em; margin: 10px 0 8px; }
 .gate form p { color: var(--mut); margin: 0 0 22px; }
 .gate .err { color: var(--bad); font-size: 13px; margin: 10px 0 0; min-height: 1em; }
+.test-note { margin: 12px 0 14px; padding: 12px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+.test-note b { display: block; color: var(--warn); margin-bottom: 2px; }
+.contract .stamp.test { color: var(--warn); border-color: var(--warn); }
+.gate-or { display: flex; align-items: center; gap: 12px; margin: 22px 0 16px; color: var(--mut); font: 12px var(--mono); text-transform: uppercase; letter-spacing: .14em; }
+.gate-or::before, .gate-or::after { content: ""; flex: 1; border-top: 1px dashed var(--line-2); }
+.gate #gate-guest-btn { width: 100%; justify-content: center; }
+.gate .gate-fine { font-size: 13px; margin: 10px 0 0 !important; }
+.guest-card { margin: 0 8px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn-soft) 16%, transparent); border: 1px dashed color-mix(in srgb, var(--warn-soft) 45%, transparent); color: var(--on-night); font-size: 12.5px; line-height: 1.45; }
+.guest-card b { display: block; font: 600 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--warn-soft); margin-bottom: 4px; }
+.guest-card button.link { color: var(--on-night); font-size: 12.5px; margin-top: 6px; }
 .gate button { width: 100%; margin-top: 14px; }
 
 /* ---- responsive ------------------------------------------------------------------------------------ */
@@ -326,6 +336,7 @@ td .tiny { font: 500 11.5px/1.4 var(--mono); color: var(--mut); }
     <a class="brand" href="#overview" id="brand">PriceBack <small>console</small></a>
     <nav class="menu" id="menu"></nav>
     <div class="side-card" id="side-card"></div>
+    <div class="guest-card" id="guest-card" hidden><b>Guest mode</b>Explore everything and run the price lab with sandbox money. The product catalog is owner-only.<br><button type="button" class="link" id="guest-exit">Unlock as owner</button></div>
     <div class="side-foot"><a href="/" target="_blank" rel="noopener">Storefront ↗</a><button class="link" id="signout" hidden>Lock</button></div>
   </aside>
 
@@ -452,6 +463,11 @@ td .tiny { font: 500 11.5px/1.4 var(--mono); color: var(--mut); }
     <input id="gate-token" type="password" autocomplete="current-password" required placeholder="Admin token">
     <p class="err" id="gate-err"></p>
     <button type="submit">Unlock <span class="arrow">→</span></button>
+    <div id="gate-guest" hidden>
+      <div class="gate-or">or</div>
+      <button type="button" class="ghost" id="gate-guest-btn">Explore as a guest <span class="arrow">→</span></button>
+      <p class="gate-fine">See the whole console, write a promise and run the price lab with PayPal sandbox money. The product catalog stays locked.</p>
+    </div>
   </form>
 </div>
 
@@ -467,16 +483,40 @@ const store = {
 
 // ---- auth ------------------------------------------------------------------------------------------
 let TOKEN = store.get('pb_token');
+let GUEST = store.get('pb_guest') === '1';
 let tokenWait = null;
+const guestOffered = fetch('/api/demo').then((r) => r.json()).then((d) => Boolean(d.merchant_guest)).catch(() => false);
+
+// Guest mode: everything but the catalog, which the server keeps owner-only.
+function enterGuestMode() {
+  const i = VIEWS.findIndex((v) => v.id === 'catalog');
+  if (i >= 0) VIEWS.splice(i, 1);
+  $$('.view[data-view="catalog"]').forEach((el) => { el.hidden = true; });
+  $('#guest-card').hidden = false;
+  $('#signout').hidden = true;
+  if (location.hash === '#catalog') location.hash = 'overview';
+}
+$('#guest-exit').onclick = () => { store.set('pb_guest', ''); store.set('pb_token', ''); location.reload(); };
+
 function askToken(wrong) {
   if (!tokenWait) tokenWait = new Promise((resolve) => {
     $('#gate').classList.add('open');
+    guestOffered.then((ok) => { $('#gate-guest').hidden = !ok; });
+    $('#gate-guest-btn').onclick = () => {
+      GUEST = true; TOKEN = '';
+      store.set('pb_guest', '1'); store.set('pb_token', '');
+      $('#gate').classList.remove('open');
+      tokenWait = null;
+      enterGuestMode(); showView();
+      resolve();
+    };
     $('#gate-err').textContent = wrong ? 'That token was not accepted.' : '';
     setTimeout(() => $('#gate-token').focus(), 30);
     $('#gate-form').onsubmit = (ev) => {
       ev.preventDefault();
       TOKEN = $('#gate-token').value.trim();
-      store.set('pb_token', TOKEN);
+      GUEST = false;
+      store.set('pb_token', TOKEN); store.set('pb_guest', '');
       $('#gate').classList.remove('open');
       $('#gate-token').value = '';
       tokenWait = null;
@@ -488,10 +528,13 @@ function askToken(wrong) {
 $('#signout').onclick = () => { store.set('pb_token', ''); location.reload(); };
 
 async function api(path, opts = {}) {
-  const go = () => fetch(path, {...opts, headers: {'content-type': 'application/json', 'x-admin-token': TOKEN, ...(opts.headers || {})}});
+  const go = () => fetch(path, {...opts, headers: {'content-type': 'application/json', 'x-admin-token': TOKEN, 'x-demo-guest': GUEST ? '1' : '0', ...(opts.headers || {})}});
   let r = await go();
-  while (r.status === 401) { await askToken(Boolean(TOKEN)); r = await go(); }
-  if (TOKEN) $('#signout').hidden = false;
+  while (r.status === 401) {
+    if (GUEST) { GUEST = false; store.set('pb_guest', ''); }  // guest mode was switched off on the server
+    await askToken(Boolean(TOKEN)); r = await go();
+  }
+  if (TOKEN && !GUEST) $('#signout').hidden = false;
   const j = await r.json().catch(() => ({}));
   if (!r.ok) {
     const d = j.detail;
@@ -567,6 +610,7 @@ document.addEventListener('click', (e) => { const g = e.target.closest('[data-go
 
 // ---- helpers -------------------------------------------------------------------------------------------
 const chip = (text, cls = '') => h('span', {class: 'chip ' + cls}, text);
+const endsAt = (ts) => new Date(ts * 1000).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
 const statusChip = (st) => chip(human(st), st === 'COMPLETED' || st === 'CAPTURED' ? 'ok' : (/FAILED|MISMATCH/.test(st) ? 'bad' : (/PENDING|pending/.test(st) ? 'warn' : '')));
 const paidOrders = () => S.orders.filter((o) => o.status !== 'CREATED');
 const productById = (id) => S.products.find((p) => p.id === id);
@@ -576,7 +620,7 @@ const refundedFor = (orderId) => S.settle.filter((x) => x.order_id === orderId &
 function renderSide() {
   const pol = S.policy;
   $('#side-card').replaceChildren(pol
-    ? h('div', {}, chip('Guarantee live', 'ok live'), h('q', {}, pol.text), h('p', {class: 'mut'}, `${pol.policy.window_days} days · ${dollars(pol.policy.max_refund_per_order)}/order · ${dollars(pol.policy.daily_budget)}/day`))
+    ? h('div', {}, pol.testing ? chip(`Testing · ends ${endsAt(pol.expires_at)}`, 'warn dot') : chip('Guarantee live', 'ok live'), h('q', {}, pol.text), h('p', {class: 'mut'}, `${pol.policy.window_days} days · ${dollars(pol.policy.max_refund_per_order)}/order · ${dollars(pol.policy.daily_budget)}/day`))
     : h('div', {}, chip('No guarantee live', 'warn dot'), h('p', {class: 'mut'}, 'Orders placed now are not covered.'), h('button', {class: 'small', style: 'margin-top:10px', 'data-go': 'promise'}, 'Write a promise')));
 }
 
@@ -696,9 +740,20 @@ function renderContract() {
   }
   const p = pol.policy;
   const row = (k, v) => h('div', {}, h('dt', {}, k), h('dd', {}, v));
-  $('#promise-h').textContent = 'Replace it with a new promise';
+  $('#promise-h').textContent = GUEST ? 'Try your own promise (Testing)' : 'Replace it with a new promise';
+  const endTest = h('button', {type: 'button', class: 'ghost small', onclick: () => busy(endTest, async () => {
+    await post('/api/policy/test/end'); toast('Testing promise ended. Your store view is back to the real guarantee.'); await refresh();
+  })}, 'End test now');
+  const note = pol.testing
+    ? h('div', {class: 'test-note'}, h('b', {}, 'This is a Testing promise, not the store’s guarantee.'),
+        `Only you see it: open the storefront in this browser and it shows as “Testing promise (yours)”. Orders you place there use it and their refunds are labelled Testing, with their own budget. Other shoppers keep the real guarantee. It ends at ${endsAt(pol.expires_at)}.`,
+        h('div', {style: 'margin-top:10px'}, endTest))
+    : GUEST ? h('div', {class: 'test-note'}, h('b', {}, 'You are a guest.'),
+        'This is the store’s real promise. Anything you activate becomes a Testing promise that only you see, for 3 hours, and it never changes this one.')
+    : null;
   $('#contract').replaceChildren(h('div', {class: 'contract'},
-    h('div', {class: 'stamp'}, 'In force'), h('h3', {}, 'Current guarantee'),
+    h('div', {class: 'stamp' + (pol.testing ? ' test' : '')}, pol.testing ? 'Testing' : 'In force'),
+    h('h3', {}, pol.testing ? 'Your Testing promise' : 'Current guarantee'), note,
     h('blockquote', {}, `“${pol.text}”`),
     h('dl', {}, row('Window', `${p.window_days} days`), row('Max per order', dollars(p.max_refund_per_order)),
       row('Daily budget', dollars(p.daily_budget)), row('Smallest drop', p.min_drop_pct ? `${p.min_drop_pct}%` : 'any')),
@@ -713,7 +768,7 @@ $('#compile').onclick = (ev) => busy(ev.currentTarget, async () => {
   const p = compiled.policy;
   const term = (id, label, val, unit, step) => h('div', {class: 'term'}, h('label', {for: id}, label),
     h('div', {class: 'in'}, unit === '$' ? h('span', {class: 'unit'}, '$') : null, h('input', {id, type: 'number', step, min: 0, value: val, inputmode: 'decimal'}), unit !== '$' ? h('span', {class: 'unit'}, unit) : null));
-  const activate = h('button', {class: 'accent', type: 'button'}, 'Activate promise', h('span', {class: 'arrow'}, '→'));
+  const activate = h('button', {class: 'accent', type: 'button'}, GUEST ? 'Activate as Testing promise' : 'Activate promise', h('span', {class: 'arrow'}, '→'));
   const discard = h('button', {class: 'ghost', type: 'button', onclick: () => { compiled = null; $('#compiled').replaceChildren(); }}, 'Discard');
   $('#compiled').replaceChildren(h('div', {class: 'sheet'},
     h('div', {class: 'sheet-h'}, h('b', {}, 'Term sheet · check before going live'), chip(compiled.source === 'llm' ? 'read by AI model' : 'read by rules')),
@@ -721,11 +776,18 @@ $('#compile').onclick = (ev) => busy(ev.currentTarget, async () => {
       term('c-window', 'Window', p.window_days, 'days', '1'), term('c-cap', 'Max refund per order', p.max_refund_per_order, '$', '0.01'),
       term('c-daily', 'Daily refund budget', p.daily_budget, '$', '0.01'), term('c-min', 'Ignore drops under', p.min_drop_pct, '%', '0.1')),
     compiled.notes.length ? h('div', {class: 'sheet-notes'}, ...compiled.notes.map((n) => h('p', {}, n))) : null,
+    GUEST ? h('div', {class: 'test-note'}, h('b', {}, 'Guest: this will be a Testing promise.'),
+      'It is only a test and won’t change the store’s real guarantee. Only you see it, in this browser, for 3 hours. Limits: up to 30 days, $100 per order, $200 a day.') : null,
     h('div', {class: 'actions'}, activate, discard)));
   activate.onclick = () => busy(activate, async () => {
     const policy = {kind: 'price_drop', window_days: +$('#c-window').value, max_refund_per_order: +$('#c-cap').value, daily_budget: +$('#c-daily').value, min_drop_pct: +$('#c-min').value};
-    await post('/api/policy/activate', {text: $('#promise-text').value.trim(), policy, source: compiled.source});
-    toast('Promise is live. New orders are covered; earlier orders keep the promise they bought under.');
+    const r = await post('/api/policy/activate', {text: $('#promise-text').value.trim(), policy, source: compiled.source});
+    if (r.testing) {
+      const low = r.lowered && r.lowered.length ? ' Some numbers were lowered to the guest limits.' : '';
+      toast(`Testing promise is live until ${endsAt(r.expires_at)}. It is only a test: other shoppers still see the real guarantee. Open the storefront in this browser to try it.${low}`);
+    } else {
+      toast('Promise is live. New orders are covered; earlier orders keep the promise they bought under.');
+    }
     compiled = null; $('#compiled').replaceChildren(); $('#promise-text').value = '';
     await refresh();
   });
@@ -959,7 +1021,7 @@ function renderRefunds() {
     return h('div', {class: 'slip'}, h('div', {class: 'receipt'},
       h('div', {class: 'top'}, h('span', {}, when(x.created_at)), h('span', {}, `#${x.order_id}`)),
       h('div', {class: 'who'}, x.title),
-      h('div', {class: 'decision'}, chip(refund ? 'refund' : 'blocked', refund ? 'ok' : 'bad'), h('span', {class: 'amount ' + (refund ? 'ok' : 'no')}, refund ? money(x.amount_cents) : '$0.00')),
+      h('div', {class: 'decision'}, chip(refund ? 'refund' : 'blocked', refund ? 'ok' : 'bad'), x.testing ? chip('testing', 'warn') : null, h('span', {class: 'amount ' + (refund ? 'ok' : 'no')}, refund ? money(x.amount_cents) : '$0.00')),
       h('div', {style: 'color:var(--mut);font-size:12px'}, human(x.reason)),
       h('div', {class: 'rule'}),
       h('div', {class: 'line'}, h('span', {}, 'Market price'), h('span', {}, money(x.market_cents))),
@@ -1062,6 +1124,7 @@ async function refresh() {
 $('#brand').prepend(brandMark());
 $$('[data-photo]').forEach((e) => { e.style.backgroundImage = `url("${photo(e.dataset.photo, 1600)}")`; });
 $('#gate-pic').style.backgroundImage = `url("${photo('pos', 1400)}")`;
+if (GUEST) enterGuestMode();
 showView();
 busy(null, async () => { await loadProducts(); await refresh(); });
 setInterval(() => { if (!tokenWait && !document.hidden && !$('#drawer').classList.contains('open')) refresh().catch(() => {}); }, 10000);

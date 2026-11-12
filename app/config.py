@@ -9,6 +9,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _str(name: str, default: str = "") -> str:
+    """Env value without the stray spaces or quotes that sneak in when keys are pasted into a dashboard."""
+    return os.getenv(name, default).strip().strip('"').strip("'").strip()
+
+
 def _bool(name: str, default: bool = False) -> bool:
     return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
 
@@ -49,30 +54,31 @@ class Settings:
     demo_buyer_email: str          # PayPal *sandbox* buyer login shown to testers (fake money only)
     demo_buyer_password: str
     demo_self_serve: bool          # shoppers may simulate a price drop on their own order
+    demo_merchant_guest: bool      # anyone may open the console as a guest: everything except the catalog
 
 
 def get_settings() -> Settings:
     """Read env on every call so tests can monkeypatch it."""
     return Settings(
-        paypal_client_id=os.getenv("PAYPAL_CLIENT_ID", ""),
-        paypal_client_secret=os.getenv("PAYPAL_CLIENT_SECRET", ""),
-        paypal_base_url=os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com").rstrip("/"),
-        paypal_webhook_id=os.getenv("PAYPAL_WEBHOOK_ID", ""),
+        paypal_client_id=_str("PAYPAL_CLIENT_ID"),
+        paypal_client_secret=_str("PAYPAL_CLIENT_SECRET"),
+        paypal_base_url=_str("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com").rstrip("/"),
+        paypal_webhook_id=_str("PAYPAL_WEBHOOK_ID"),
         paypal_allow_live=_bool("PAYPAL_ALLOW_LIVE"),
         allow_unverified_webhooks=_bool("ALLOW_UNVERIFIED_WEBHOOKS"),
-        public_base_url=os.getenv("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/"),
-        channel3_api_key=os.getenv("CHANNEL3_API_KEY", ""),
+        public_base_url=_str("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/"),
+        channel3_api_key=_str("CHANNEL3_API_KEY"),
         channel3_base_url=os.getenv("CHANNEL3_BASE_URL", "https://api.trychannel3.com").rstrip("/"),
         catalog_query=os.getenv("CATALOG_QUERY", "wireless headphones"),
         catalog_size=int(os.getenv("CATALOG_SIZE", "8")),
-        gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
+        gemini_api_key=_str("GEMINI_API_KEY"),
         llm_model=os.getenv("LLM_MODEL", "gemini-3.1-flash-lite"),
-        admin_token=os.getenv("ADMIN_TOKEN", ""),
+        admin_token=_str("ADMIN_TOKEN"),
         db_path=os.getenv("PRICEBACK_DB", "priceback.db"),
         watch_interval_seconds=int(os.getenv("WATCH_INTERVAL_SECONDS", "0")),
         default_daily_budget=float(os.getenv("DEFAULT_DAILY_BUDGET", "100")),
         seed_catalog=_bool("SEED_CATALOG"),
-        brevo_api_key=os.getenv("BREVO_API_KEY", "").strip(),
+        brevo_api_key=_str("BREVO_API_KEY"),
         mail_from=(os.getenv("MAIL_FROM", "").strip() or os.getenv("SMTP_USER", "").strip()),
         smtp_host=os.getenv("SMTP_HOST", "").strip(),
         smtp_port=int(os.getenv("SMTP_PORT", "587") or 587),
@@ -83,4 +89,5 @@ def get_settings() -> Settings:
         demo_buyer_email=os.getenv("DEMO_BUYER_EMAIL", "").strip(),
         demo_buyer_password=os.getenv("DEMO_BUYER_PASSWORD", "").strip(),
         demo_self_serve=_bool("DEMO_SELF_SERVE", True),
+        demo_merchant_guest=_bool("DEMO_MERCHANT_GUEST"),
     )

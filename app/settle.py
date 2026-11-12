@@ -72,11 +72,14 @@ def _refunded_for_order(conn: sqlite3.Connection, order_id: int) -> int:
         "WHERE order_id=? AND action='refund' AND status!='FAILED'", (order_id,)).fetchone()[0]
 
 
-def _refunded_today(conn: sqlite3.Connection, now: int) -> int:
+def _refunded_today(conn: sqlite3.Connection, now: int, test_policy_id: int | None = None) -> int:
+    """Refunds today against one budget: the store's real one, or a single Testing promise's own."""
     day_start = now - (now % 86400)  # UTC day
+    scope = "o.test_policy_id IS NULL" if test_policy_id is None else "o.test_policy_id=?"
+    args = (day_start,) if test_policy_id is None else (day_start, test_policy_id)
     return conn.execute(
-        "SELECT COALESCE(SUM(amount_cents),0) FROM settlements "
-        "WHERE action='refund' AND status!='FAILED' AND created_at>=?", (day_start,)).fetchone()[0]
+        "SELECT COALESCE(SUM(s.amount_cents),0) FROM settlements s JOIN orders o ON o.id=s.order_id "
+        f"WHERE s.action='refund' AND s.status!='FAILED' AND s.created_at>=? AND {scope}", args).fetchone()[0]
 
 
 def explain(title: str, paid_cents: int, market_cents: int, amount_cents: int, reason: str) -> str:
@@ -130,16 +133,20 @@ def settle_order(conn: sqlite3.Connection, paypal: PayPalClient, order: sqlite3.
     if order["status"] != "CAPTURED" or not order["policy_json"] or not order["capture_id"]:
         return {"action": "skip", "reason": "not_guaranteed"}
     policy = Policy.model_validate_json(order["policy_json"])
-    active = get_active(conn)
-    # Per-order terms come from the promise in force at purchase; the daily budget is a
-    # merchant-level guardrail and follows the currently active policy.
-    daily_cents = to_cents((Policy.model_validate_json(active["policy_json"]) if active else policy).daily_budget)
+    test_id = order["test_policy_id"] if "test_policy_id" in order.keys() else None
+    if test_id:  # bought under a guest's Testing promise: that promise's own budget, never the store's
+        daily_cents = to_cents(policy.daily_budget)
+    else:
+        active = get_active(conn)
+        # Per-order terms come from the promise in force at purchase; the daily budget is a
+        # merchant-level guardrail and follows the currently active policy.
+        daily_cents = to_cents((Policy.model_validate_json(active["policy_json"]) if active else policy).daily_budget)
 
     with tx(conn):
         refunded = _refunded_for_order(conn, order["id"])
         d = evaluate(paid_cents=order["paid_cents"], captured_at=order["captured_at"], now=now, policy=policy,
                      market_cents=market_cents, refunded_cents=refunded,
-                     refunded_today_cents=_refunded_today(conn, now), daily_budget_cents=daily_cents)
+                     refunded_today_cents=_refunded_today(conn, now, test_id), daily_budget_cents=daily_cents)
         if d.action == "skip":
             return {"action": "skip", "reason": d.reason}
         if d.action == "blocked":

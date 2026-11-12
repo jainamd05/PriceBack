@@ -101,12 +101,57 @@ def compile_policy(text: str) -> dict:
 
 # ---- storage ---------------------------------------------------------------------------
 def get_active(conn: sqlite3.Connection) -> sqlite3.Row | None:
-    return conn.execute("SELECT * FROM policies WHERE active=1 ORDER BY id DESC LIMIT 1").fetchone()
+    """The store's real promise (the owner's). Guests' Testing promises never count here."""
+    return conn.execute("SELECT * FROM policies WHERE active=1 AND guest_id IS NULL ORDER BY id DESC LIMIT 1").fetchone()
+
+
+# ---- Testing promises: a console guest can try a promise without changing the store's real one ----------
+TEST_TTL_SECONDS = 3 * 3600
+TEST_LIMITS = {"window_days": 30, "max_refund_per_order": 100.0, "daily_budget": 200.0}
+
+
+def clamp_test(policy: Policy) -> tuple[Policy, list[str]]:
+    """Keep guest promises within demo-sized limits. Returns the policy and what was lowered."""
+    changes, notes = {}, []
+    for field, limit in TEST_LIMITS.items():
+        if getattr(policy, field) > limit:
+            changes[field] = limit
+            notes.append(field)
+    return (policy.model_copy(update=changes) if changes else policy), notes
+
+
+def get_test(conn: sqlite3.Connection, guest_id: str | None, now: int | None = None) -> sqlite3.Row | None:
+    if not guest_id:
+        return None
+    now = int(now if now is not None else time.time())
+    return conn.execute("SELECT * FROM policies WHERE active=1 AND guest_id=? AND expires_at>? ORDER BY id DESC LIMIT 1",
+                        (guest_id, now)).fetchone()
+
+
+def get_for(conn: sqlite3.Connection, guest_id: str | None, now: int | None = None) -> sqlite3.Row | None:
+    """The promise this browser sees: its own unexpired Testing promise, else the store's real one."""
+    return get_test(conn, guest_id, now) or get_active(conn)
+
+
+def activate_test(conn: sqlite3.Connection, guest_id: str, text: str, policy: Policy, source: str,
+                  now: int | None = None) -> sqlite3.Row:
+    now = int(now if now is not None else time.time())
+    with tx(conn):
+        conn.execute("UPDATE policies SET active=0 WHERE guest_id=?", (guest_id,))
+        cur = conn.execute(
+            "INSERT INTO policies (text, policy_json, source, active, created_at, guest_id, expires_at)"
+            " VALUES (?,?,?,1,?,?,?)",
+            (text.strip(), policy.model_dump_json(), source, now, guest_id, now + TEST_TTL_SECONDS))
+    return conn.execute("SELECT * FROM policies WHERE id=?", (cur.lastrowid,)).fetchone()
+
+
+def end_test(conn: sqlite3.Connection, guest_id: str) -> None:
+    conn.execute("UPDATE policies SET active=0 WHERE guest_id=?", (guest_id,))
 
 
 def activate(conn: sqlite3.Connection, text: str, policy: Policy, source: str) -> int:
     with tx(conn):
-        conn.execute("UPDATE policies SET active=0")
+        conn.execute("UPDATE policies SET active=0 WHERE guest_id IS NULL")
         cur = conn.execute(
             "INSERT INTO policies (text, policy_json, source, active, created_at) VALUES (?,?,?,1,?)",
             (text.strip(), policy.model_dump_json(), source, int(time.time())),
@@ -117,5 +162,8 @@ def activate(conn: sqlite3.Connection, text: str, policy: Policy, source: str) -
 def policy_row_to_dict(row: sqlite3.Row | None) -> dict | None:
     if not row:
         return None
+    keys = row.keys()
+    testing = "guest_id" in keys and row["guest_id"] is not None
     return {"id": row["id"], "text": row["text"], "source": row["source"],
-            "policy": json.loads(row["policy_json"]), "created_at": row["created_at"]}
+            "policy": json.loads(row["policy_json"]), "created_at": row["created_at"],
+            "testing": testing, "expires_at": row["expires_at"] if testing else None}

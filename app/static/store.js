@@ -10,6 +10,7 @@ function initNav() {
   if (links && !$('#acct')) links.append(h('span', {id: 'acct', class: 'acct'}));
   loadMe();
   demoBadge();
+  testingNote();
   const nav = $('#nav');
   if (!nav || !nav.classList.contains('over')) return;
   const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
@@ -31,6 +32,23 @@ function demoBadge() {
       try { sessionStorage.setItem('pb_demo_badge', open ? 'open' : 'min'); } catch (e) {}
     }}, open ? 'Hide' : 'What is this?'));
   document.body.append(badge);
+}
+
+/* A console guest's own Testing promise: shown only in their browser, never to other shoppers. */
+const endsAt = (ts) => new Date(ts * 1000).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+async function testingNote() {
+  let g;
+  try { g = await (await fetch('/api/guarantee', {credentials: 'same-origin'})).json(); } catch (e) { return; }
+  if (!g.testing || !$('#demo-badge')) return;
+  const end = h('button', {type: 'button', class: 'link', onclick: async () => {
+    try { await fetch('/api/policy/test/end', {method: 'POST', credentials: 'same-origin', headers: {'x-demo-guest': '1'}}); } catch (e) {}
+    location.reload();
+  }}, 'End test');
+  $('#demo-badge').append(h('div', {class: 'demo-test'},
+    h('b', {}, 'Testing promise (yours)'),
+    h('span', {}, `${g.window_days} days · up to ${dollars(g.max_refund_per_order)} per order · ends ${endsAt(g.expires_at)}. `,
+      'You made it in the merchant console. Only you see it; other shoppers get the store’s real guarantee. Orders you place now use it, labelled Testing. '),
+    end));
 }
 
 function priceEl(cents, cur = 'USD', cls = 'price') {
