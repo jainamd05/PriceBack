@@ -170,3 +170,18 @@ def test_email_provider_choice(monkeypatch):
     monkeypatch.setenv("SMTP_USER", "u@gmail.example")
     monkeypatch.setenv("SMTP_PASSWORD", "p")
     assert notify.email_provider() == "smtp"
+
+
+def test_refund_keys_survive_a_database_reset(client, paypal):
+    """Order ids restart at 1 when the DB resets (Render free plan); PayPal must never see a reused request id."""
+    activate(client)
+    sign_in(client)
+    buy(client, client.pid)
+    (o,) = client.get("/api/me/orders").json()
+    client.post(f"/api/me/orders/{o['id']}/simulate-drop", json={"drop_pct": 10})
+    (key,) = paypal.refund_calls
+    from app.db import connect
+    from contextlib import closing
+    with closing(connect()) as conn:
+        capture = conn.execute("SELECT capture_id FROM orders WHERE id=?", (o["id"],)).fetchone()[0]
+    assert capture and capture in key and not key.startswith(f"pb-{o['id']}-")

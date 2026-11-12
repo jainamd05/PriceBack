@@ -15,3 +15,9 @@ buggers/
 
 # launch video project (kept local, not on GitHub)
 brag-output/
+
+# narrated demo video project (kept local)
+demo-video/
+
+# exported stills from the launch video (kept local; the README uses the curated copies in docs/screenshots/)
+gallery/

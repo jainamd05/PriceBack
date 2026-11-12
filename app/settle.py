@@ -160,7 +160,9 @@ def settle_order(conn: sqlite3.Connection, paypal: PayPalClient, order: sqlite3.
                     (order["id"], "blocked", 0, d.reason, market_cents, price_source, "blocked", now))
             return {"action": "blocked", "reason": d.reason}
 
-        base = f"pb-{order['id']}-{market_cents}-{refunded}"
+        # PayPal's capture id is globally unique; our order ids restart at 1 whenever the database resets (Render
+        # free plan), and a reused PayPal-Request-Id is rejected as DUPLICATE_REQUEST_ID.
+        base = f"pb-{order['capture_id']}-{market_cents}-{refunded}"
         attempt = conn.execute("SELECT COUNT(*) FROM settlements WHERE idempotency_key LIKE ?",
                                (base + "-%",)).fetchone()[0]
         key = f"{base}-{attempt}"

@@ -2,7 +2,8 @@
 
 Nothing in app/ is changed. This script:
   * points the app at a throwaway database (so your priceback.db is untouched),
-  * blanks the Channel3 key so the 6 demo products load (numbers match SIMULATION-GUIDE.md),
+  * blanks the Channel3 key and turns SEED_CATALOG on, so the empty database loads the 100-product catalog and
+    the 14-day promise (numbers match SIMULATION-GUIDE.md),
   * swaps ONLY the PayPal client for an in-memory pretend one (same idea as tests/conftest.py FakePayPal),
   * adds two clearly-labelled local pages: /pretend-paypal/checkout/<id> and /pretend-paypal/activity.
 
@@ -25,7 +26,8 @@ BASE = f"http://127.0.0.1:{PORT}"
 # Set before the app loads .env (python-dotenv never overrides variables that already exist).
 os.environ.update({
     "PRICEBACK_DB": DB,
-    "CHANNEL3_API_KEY": "",          # demo catalog
+    "CHANNEL3_API_KEY": "",          # no live import: use the seed catalog
+    "SEED_CATALOG": "true",          # an empty database loads app/seed_catalog.json (100 products + the promise)
     "PUBLIC_BASE_URL": BASE,
     "WATCH_INTERVAL_SECONDS": "0",   # watcher runs only when "Run watcher now" is clicked
     "PAYPAL_WEBHOOK_ID": "",
@@ -132,4 +134,5 @@ def pretend_activity():
 
 if __name__ == "__main__":
     print(f"PriceBack (real app) + PRETEND PayPal on {BASE}  -  database: {DB}", flush=True)
+    print(f"Pretend PayPal merchant activity (payments and refunds it received): {BASE}/pretend-paypal/activity", flush=True)
     uvicorn.run(app, host="127.0.0.1", port=PORT)
