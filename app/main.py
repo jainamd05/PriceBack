@@ -1,6 +1,7 @@
 """PriceBack API + static pages.
 
-Public:   /, /api/products, /api/guarantee, /api/checkout, /checkout/return, /api/webhooks/paypal
+Public:   /, /product/{id}, /account, /api/products, /api/guarantee, /api/demo, /checkout/return, /api/webhooks/paypal
+Shopper:  /api/auth/*, /api/me*, /api/checkout (signed in with an emailed one-time code; session cookie)
 Merchant: everything else (protected by x-admin-token when ADMIN_TOKEN is set)
 """
 from __future__ import annotations
@@ -13,11 +14,12 @@ import time
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from . import notify, shoppers
 from . import policy as policy_mod
 from . import prices
 from .config import get_settings
@@ -25,6 +27,7 @@ from .db import connect, init_db, tx
 from .models import Policy
 from .money import to_cents
 from .paypal import PayPalClient, PayPalError
+from .settle import settle_order
 from .watcher import run_watch_once
 from .webhooks import process_event
 
@@ -53,6 +56,16 @@ def get_conn():
         conn.close()
 
 
+def current_shopper(pb_session: str | None = Cookie(default=None), conn=Depends(get_conn)) -> str | None:
+    return shoppers.session_email(conn, pb_session)
+
+
+def require_shopper(email: str | None = Depends(current_shopper)) -> str:
+    if not email:
+        raise HTTPException(401, "Sign in with your email first.")
+    return email
+
+
 def require_admin(x_admin_token: str = Header(default="")) -> None:
     token = get_settings().admin_token
     if token and not hmac.compare_digest(x_admin_token, token):
@@ -61,7 +74,9 @@ def require_admin(x_admin_token: str = Header(default="")) -> None:
 
 def _watch_blocking() -> dict:
     with closing(connect()) as conn:
-        return run_watch_once(conn, get_paypal())
+        r = run_watch_once(conn, get_paypal())
+        notify.flush(conn)
+        return r
 
 
 async def _watch_loop(interval: int) -> None:
@@ -114,6 +129,11 @@ def merchant_page():
     return FileResponse(STATIC / "merchant.html")
 
 
+@app.get("/account", include_in_schema=False)
+def account_page():
+    return FileResponse(STATIC / "account.html")
+
+
 # ---- public API --------------------------------------------------------------------------
 def _product_out(r) -> dict:
     return {"id": r["id"], "title": r["title"], "image_url": r["image_url"],
@@ -141,7 +161,8 @@ class CheckoutIn(BaseModel):
 
 
 @app.post("/api/checkout")
-def checkout(body: CheckoutIn, conn=Depends(get_conn), pp: PayPalClient = Depends(get_paypal)):
+def checkout(body: CheckoutIn, shopper: str = Depends(require_shopper), conn=Depends(get_conn),
+             pp: PayPalClient = Depends(get_paypal)):
     prod = conn.execute("SELECT * FROM products WHERE id=?", (body.product_id,)).fetchone()
     if not prod:
         raise HTTPException(404, "Unknown product.")
@@ -155,9 +176,9 @@ def checkout(body: CheckoutIn, conn=Depends(get_conn), pp: PayPalClient = Depend
         log.error("create_order failed: %s", e)
         raise HTTPException(502, "Could not start PayPal checkout.") from e
     conn.execute(
-        "INSERT INTO orders (paypal_order_id, product_id, title, paid_cents, currency, status, created_at)"
-        " VALUES (?,?,?,?,?,?,?)",
-        (res["id"], prod["id"], prod["title"], prod["price_cents"], prod["currency"], "CREATED", int(time.time())))
+        "INSERT INTO orders (paypal_order_id, product_id, title, paid_cents, currency, status, created_at, buyer_email)"
+        " VALUES (?,?,?,?,?,?,?,?)",
+        (res["id"], prod["id"], prod["title"], prod["price_cents"], prod["currency"], "CREATED", int(time.time()), shopper))
     return {"paypal_order_id": res["id"], "approve_url": res["approve_url"]}
 
 
@@ -190,12 +211,128 @@ def checkout_return(token: str, conn=Depends(get_conn), pp: PayPalClient = Depen
         conn.execute(
             "UPDATE orders SET status='CAPTURED', capture_id=?, captured_at=?, policy_json=? WHERE id=?",
             (cap["capture_id"], int(time.time()), active["policy_json"] if active else None, order["id"]))
+        notify.flush(conn)  # "order confirmed, price protected until …"
     return RedirectResponse(f"/?paid={order['id']}")
 
 
 @app.get("/checkout/cancel", include_in_schema=False)
 def checkout_cancel():
     return RedirectResponse("/?cancelled=1")
+
+
+# ---- shopper accounts ----------------------------------------------------------------------
+@app.get("/api/demo")
+def demo_info():
+    """What a tester needs to try the prototype: the PayPal *sandbox* buyer login (fake money only)."""
+    s = get_settings()
+    return {"buyer_email": s.demo_buyer_email or None, "buyer_password": s.demo_buyer_password or None,
+            "self_serve_drops": s.demo_self_serve, "email_enabled": notify.email_configured()}
+
+
+class AuthStartIn(BaseModel):
+    email: str = Field(max_length=254)
+
+
+class AuthVerifyIn(BaseModel):
+    email: str = Field(max_length=254)
+    code: str = Field(max_length=12)
+
+
+def _auth_error(e: shoppers.AuthError) -> HTTPException:
+    return HTTPException(e.status, str(e))
+
+
+@app.post("/api/auth/start")
+def auth_start(body: AuthStartIn, conn=Depends(get_conn)):
+    s = get_settings()
+    local = not s.public_base_url.startswith("https://")
+    if not notify.email_configured() and not local:
+        raise HTTPException(503, "Email sign-in is not configured on this server (BREVO_API_KEY / MAIL_FROM).")
+    try:
+        email = shoppers.normalize(body.email)
+        code = shoppers.start(conn, email)
+    except shoppers.AuthError as e:
+        raise _auth_error(e) from e
+    if notify.email_configured():
+        try:
+            notify.send_login_code(email, code)
+        except Exception as e:  # noqa: BLE001
+            log.error("sign-in email to %s failed: %s", email, e)
+            raise HTTPException(502, "We couldn't send the email. Check the address and try again.") from e
+        return {"sent": True, "email": email}
+    log.warning("No email provider configured: sign-in code for %s is %s", email, code)
+    return {"sent": False, "email": email, "dev_code": code}  # local development only
+
+
+@app.post("/api/auth/verify")
+def auth_verify(body: AuthVerifyIn, response: Response, conn=Depends(get_conn)):
+    try:
+        token = shoppers.verify(conn, body.email, body.code)
+    except shoppers.AuthError as e:
+        raise _auth_error(e) from e
+    response.set_cookie(shoppers.COOKIE, token, max_age=shoppers.SESSION_TTL, httponly=True, samesite="lax",
+                        secure=get_settings().public_base_url.startswith("https://"), path="/")
+    return {"email": shoppers.normalize(body.email)}
+
+
+@app.post("/api/auth/logout")
+def auth_logout(response: Response, pb_session: str | None = Cookie(default=None), conn=Depends(get_conn)):
+    shoppers.logout(conn, pb_session)
+    response.delete_cookie(shoppers.COOKIE, path="/")
+    return {"ok": True}
+
+
+@app.get("/api/me")
+def me(email: str | None = Depends(current_shopper)):
+    return {"email": email}
+
+
+def _my_order(conn, o) -> dict:
+    out = {k: o[k] for k in ("id", "product_id", "title", "paid_cents", "currency", "status", "created_at", "captured_at")}
+    out["image_url"] = (conn.execute("SELECT image_url FROM products WHERE id=?", (o["product_id"],)).fetchone() or {"image_url": None})["image_url"]
+    out["covered"] = bool(o["policy_json"])
+    out["window_days"] = out["cover_ends_at"] = out["max_refund_cents"] = None
+    if o["policy_json"]:
+        p = Policy.model_validate_json(o["policy_json"])
+        out["window_days"], out["max_refund_cents"] = p.window_days, to_cents(p.max_refund_per_order)
+        out["cover_ends_at"] = o["captured_at"] + p.window_days * 86400 if o["captured_at"] else None
+    out["decisions"] = _rows(conn, "SELECT id, action, amount_cents, reason, market_cents, price_source, status,"
+                                   " paypal_refund_id, explanation, created_at FROM settlements WHERE order_id=? ORDER BY id",
+                             (o["id"],))
+    out["refunded_cents"] = sum(d["amount_cents"] for d in out["decisions"] if d["action"] == "refund" and d["status"] != "FAILED")
+    out["emails"] = _rows(conn, "SELECT kind, subject, status, channel, created_at, sent_at FROM notifications"
+                                " WHERE order_id=? ORDER BY id", (o["id"],))
+    return out
+
+
+@app.get("/api/me/orders")
+def my_orders(email: str = Depends(require_shopper), conn=Depends(get_conn)):
+    rows = conn.execute("SELECT * FROM orders WHERE buyer_email=? AND status!='CREATED' ORDER BY id DESC LIMIT 50",
+                        (email,)).fetchall()
+    return [_my_order(conn, o) for o in rows]
+
+
+class MyDropIn(BaseModel):
+    drop_pct: float = Field(ge=1, le=80)
+
+
+@app.post("/api/me/orders/{order_id}/simulate-drop")
+def my_simulated_drop(order_id: int, body: MyDropIn, email: str = Depends(require_shopper),
+                      conn=Depends(get_conn), pp: PayPalClient = Depends(get_paypal)):
+    """Demo only: pretend the market price of THIS order's product fell by drop_pct, and settle just this order.
+    The product's real price is untouched, so other shoppers' orders are not affected. Every guardrail
+    (window, per-order cap, daily budget) still applies, and the refund is labelled 'simulated'."""
+    if not get_settings().demo_self_serve:
+        raise HTTPException(403, "Self-serve price drops are turned off on this server.")
+    o = conn.execute("SELECT * FROM orders WHERE id=? AND buyer_email=?", (order_id, email)).fetchone()
+    if not o:
+        raise HTTPException(404, "Order not found.")
+    if o["status"] != "CAPTURED" or not o["policy_json"]:
+        raise HTTPException(409, "This order isn't covered by a price-drop guarantee.")
+    market = max(1, round(o["paid_cents"] * (1 - body.drop_pct / 100)))
+    result = settle_order(conn, pp, o, market, "simulated")
+    notify.flush(conn)
+    return {"market_cents": market, **result, "order": _my_order(conn, conn.execute("SELECT * FROM orders WHERE id=?", (order_id,)).fetchone())}
 
 
 @app.post("/api/webhooks/paypal")
@@ -340,7 +477,15 @@ def simulate_reset(body: ResetIn, conn=Depends(get_conn)):
 
 @app.post("/api/watch/run", dependencies=admin)
 def watch_run(conn=Depends(get_conn), pp: PayPalClient = Depends(get_paypal)):
-    return run_watch_once(conn, pp)
+    r = run_watch_once(conn, pp)
+    notify.flush(conn)
+    return r
+
+
+@app.get("/api/notifications", dependencies=admin)
+def notifications_all(conn=Depends(get_conn)):
+    return _rows(conn, "SELECT id, email, kind, order_id, subject, status, channel, error, created_at, sent_at"
+                       " FROM notifications ORDER BY id DESC LIMIT 200")
 
 
 def _rows(conn, sql: str, args: tuple = ()) -> list[dict]:
@@ -349,9 +494,22 @@ def _rows(conn, sql: str, args: tuple = ()) -> list[dict]:
 
 @app.get("/api/orders", dependencies=admin)
 def orders(conn=Depends(get_conn)):
-    return _rows(conn, "SELECT id, paypal_order_id, capture_id, product_id, title, paid_cents, currency, status,"
-                       " (policy_json IS NOT NULL) AS guaranteed, created_at, captured_at, capture_webhook_at"
-                       " FROM orders ORDER BY id DESC LIMIT 200")
+    out = []
+    for r in conn.execute("SELECT id, paypal_order_id, capture_id, product_id, title, paid_cents, currency, status,"
+                          " policy_json, created_at, captured_at, capture_webhook_at"
+                          " FROM orders ORDER BY id DESC LIMIT 200").fetchall():
+        o = dict(r)
+        pj = o.pop("policy_json")
+        o["guaranteed"] = int(pj is not None)
+        o["window_days"] = o["cover_ends_at"] = o["max_refund_cents"] = None
+        if pj:  # the promise this order bought under, so the console can draw its protection window
+            p = Policy.model_validate_json(pj)
+            o["window_days"] = p.window_days
+            o["max_refund_cents"] = to_cents(p.max_refund_per_order)
+            if o["captured_at"]:
+                o["cover_ends_at"] = o["captured_at"] + p.window_days * 86400
+        out.append(o)
+    return out
 
 
 @app.get("/api/settlements", dependencies=admin)

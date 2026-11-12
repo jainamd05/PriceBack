@@ -47,7 +47,7 @@ validated `Policy` reaches the refund path, and every amount is computed by dete
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
 cp .env.example .env          # fill in what you have
-pytest -q                     # 42 tests, no network
+pytest -q                     # 55 tests, no network
 uvicorn app.main:app --reload # http://localhost:8000  (store)   /merchant (dashboard)
 ```
 
@@ -73,12 +73,32 @@ See `.env.example`. Key variables: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `
 `CHANNEL3_API_KEY`, `GEMINI_API_KEY` (optional; model via `LLM_MODEL`), `ADMIN_TOKEN` (**required on any public deployment**),
 `WATCH_INTERVAL_SECONDS`.
 
+## Try it as a shopper (for judges)
+
+1. Open the store and click **Sign in** (or just **Pay with PayPal**). Enter your own email; we send a one-time code.
+2. Buy any product. A sheet shows the **PayPal sandbox buyer login** to use on PayPal's page (fake money).
+3. You land back on the store; open **My orders** (`/account`). You get an *order confirmed* email.
+4. Pick a drop (−5 % … −50 %) and click **Simulate this price drop**. The engine settles *your order only*: PayPal refunds the
+   difference (up to the cap) and a *we refunded you $X* email arrives within seconds. Drop it further to see the cap block it.
+
+Emails go out through **SMTP with Python's `smtplib`** (e.g. Gmail with an app password; set `SMTP_*`) or through
+**Brevo's HTTPS API** (`BREVO_API_KEY`). Both are free; use Brevo on Render's free plan, which blocks outbound SMTP. Each event is stored in
+a `notifications` outbox with a unique key, so a shopper is never emailed twice for the same event. If `ZAPIER_HOOK_URL`
+is set, every event is **also POSTed to a Zapier Catch Hook** as JSON (`event`, `email`, `subject`, `message`, `order_id`,
+`account_url`), ready for any Zap (Slack, Google Sheets, SMS…). Sign-in codes are never sent to Zapier.
+
 ## API
 
 | Public | |
 |---|---|
-| `GET /api/products`, `GET /api/guarantee` | catalog, active promise (summary) |
-| `POST /api/checkout` | create PayPal order → `approve_url` |
+| `GET /api/products`, `GET /api/guarantee`, `GET /api/demo` | catalog, active promise (summary), sandbox buyer login for testers |
+| `POST /api/auth/start`, `POST /api/auth/verify`, `POST /api/auth/logout`, `GET /api/me` | shopper sign-in with an emailed 6-digit code |
+
+| Shopper (signed in) | |
+|---|---|
+| `POST /api/checkout` | create PayPal order → `approve_url` (the order is tied to the shopper's email) |
+| `GET /api/me/orders` | my orders, protection window, refund decisions, emails sent |
+| `POST /api/me/orders/{id}/simulate-drop` | **demo**: simulate a market drop on *my* order only and settle it |
 | `GET /checkout/return` | capture + snapshot the promise |
 | `POST /api/webhooks/paypal` | verified webhook ledger |
 
@@ -88,7 +108,7 @@ See `.env.example`. Key variables: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `
 | `POST /api/simulate/drop`, `POST /api/simulate/reset` | **simulated** price changes |
 | `POST /api/products`, `PATCH /api/products/{id}`, `DELETE /api/products/{id}` | add / edit (name, photo, category; never the price) / remove a catalog product |
 | `POST /api/watch/run`, `POST /api/catalog/refresh` | settle now, import from Channel3 |
-| `GET /api/orders`, `/api/settlements`, `/api/ledger`, `/api/stats` | audit trail & dashboard data |
+| `GET /api/orders`, `/api/settlements`, `/api/ledger`, `/api/stats`, `/api/notifications` | audit trail, dashboard data, notification outbox |
 
 ## Deploy on Render
 
@@ -108,12 +128,17 @@ resets on each deploy — fine for a demo; attach a disk for durability.
 
 ## Sponsor tools
 
-| Tool | Status |
-|---|---|
-| PayPal (Orders, Refunds, Webhooks) | core, implemented |
-| Channel3 (search + live price) | implemented (needs `CHANNEL3_API_KEY`) |
-| Render | `render.yaml` included |
-| AG Grid / AG Studio | not yet integrated (planned for the merchant dashboard) |
+| Tool | Where | What it does in PriceBack |
+|---|---|---|
+| **PayPal** (Orders v2, Payments v2 refunds, Webhooks) | core | Checkout, capture, automatic partial refunds, verified webhook ledger |
+| **Channel3** (search + live price) | `app/channel3.py`, `/merchant → Catalog → Import from Channel3` | Imports real products and supplies the live market price the watcher compares against (needs `CHANNEL3_API_KEY`) |
+| **AG Grid** Community | `app/static/console-grids.js` | The console's data grids: **Orders** (sort, filter, search, CSV export, a totals row that follows your filters, "cover ends" and "still at risk" columns), **Refund decisions → Table** (an auditable, exportable ledger of every refund and guardrail block), **Webhooks**, and **Catalog → Table** (edit names and categories in place, multi-select bulk remove) |
+| **Bryntum Scheduler** (trial build) | `app/static/console-timeline.js`, `/merchant → Coverage timeline` | One row per covered order: the bar is the protection window the buyer bought under, diamonds are each refund or block on that order, and a line marks *now*. Shows at a glance which guarantees are open, which have used up their cap, and what expires next |
+| **Zapier** (optional) | `app/notify.py` | Mirrors every shopper event (order confirmed, refund sent, refund blocked) to a Zapier Catch Hook when `ZAPIER_HOOK_URL` is set |
+| **Render** | `render.yaml` | One-click Blueprint deploy (Python web service, health check, generated `ADMIN_TOKEN`, watcher every 60 s) |
+
+AG Grid and Bryntum are loaded from the jsDelivr CDN (`ag-grid-community@34.3.1`, `@bryntum/scheduler-trial@7.3.7`), so
+there is still no build step. If the CDN is unreachable, the console falls back to its plain HTML tables.
 
 ## Tests
 

@@ -219,6 +219,67 @@ td .tiny { font: 500 11.5px/1.4 var(--mono); color: var(--mut); }
 .howto b { display: block; font: 600 22px/1 var(--mono); color: var(--accent); margin-bottom: 8px; }
 .howto code { font-family: var(--mono); font-size: 12px; background: var(--card); padding: 2px 5px; border-radius: 5px; word-break: break-all; }
 
+/* ---- AG Grid tables -------------------------------------------------------------------------------- */
+.seg { display: inline-flex; padding: 3px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--card); gap: 2px; }
+.seg button { padding: 7px 14px; font-size: 12.5px; border: 0; background: transparent; color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.seg button:hover:not(:disabled):not([aria-pressed="true"]) { background: var(--paper-2); color: var(--ink); }
+.view-tools { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.view-tools .filters { margin-bottom: 0; }
+.pb-grid-tools { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.pb-grid-search { max-width: 320px; padding: 9px 14px; font-size: 13.5px; }
+.pb-grid-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grid-card { padding: 16px 16px 6px; }
+.grid-credit { font: 500 11px/1.4 var(--mono); color: var(--mut); margin: 10px 2px 0; }
+.ag-root-wrapper { border-radius: 10px; }
+.ag-root-wrapper :is(button, input, select) { box-shadow: none; transform: none; }
+.ag-root-wrapper button { padding: 0; border-radius: 4px; font-weight: 400; background: transparent; color: inherit; border-color: transparent; }
+.ag-root-wrapper button:hover:not(:disabled) { background: var(--paper-2); color: var(--ink); border-color: transparent; }
+.ag-root-wrapper input:not([type="checkbox"]), .ag-root-wrapper select { padding: 4px 8px; font-size: 13px; border-radius: 6px; }
+.ag-popup input:not([type="checkbox"]), .ag-popup select { padding: 4px 8px; font-size: 13px; border-radius: 6px; box-shadow: none; }
+.ag-header-cell-text { text-transform: uppercase; letter-spacing: .1em; }
+.ag-cell { display: flex; align-items: center; }
+.ag-cell > *, .ag-cell-value { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.ag-cell .pb-two { width: 100%; }
+.ag-cell .chip { font-size: 11px; }
+.ag-right-aligned-cell { justify-content: flex-end; }
+.pb-num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.pb-good { color: var(--ok); font-weight: 600; }
+.pb-bad { color: var(--bad); }
+.pb-accent { color: var(--accent); font-weight: 600; }
+.pb-mono { font: 500 12px/1.3 var(--mono); color: var(--ink-2); }
+.pb-two { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.pb-two b, .pb-two span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-two small { font: 500 11px/1.3 var(--mono); color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-thumb { display: block; width: 44px; height: 44px; border-radius: 9px; overflow: hidden; background: #fff; position: relative; }
+.pb-thumb > * { position: absolute !important; inset: 0; width: 100%; height: 100%; }
+.pb-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.pb-thumb .mono-art span { font-size: 30px; -webkit-text-stroke: 1px rgba(244,238,226,.5); }
+.pb-editable { cursor: text; }
+.ag-row-pinned { font-weight: 600; background: var(--paper-2) !important; }
+
+/* ---- Bryntum coverage timeline -------------------------------------------------------------------------- */
+.cov-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font: 500 12px/1 var(--mono); color: var(--mut); }
+.legend span { display: inline-flex; gap: 7px; align-items: center; }
+.legend i { width: 18px; height: 10px; border-radius: 3px; display: inline-block; }
+.legend i.dia { width: 10px; height: 10px; border-radius: 1px; transform: rotate(45deg); }
+.cov-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 18px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+.cov-stats .kpi .v { font-size: clamp(20px, 2vw, 28px); }
+.pb-sched-host { height: min(68vh, 640px); min-height: 360px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.pb-sched-host button { padding: revert-layer; }
+.pb-sched { --b-widget-font-family: "Bricolage Grotesque", "Segoe UI", sans-serif; font-family: var(--display); }
+.pb-sched .b-sch-event { font-weight: 600; font-size: 12.5px; }
+.pb-sr-t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
+.pb-sr-m { font: 500 11px/1.4 var(--mono); color: var(--mut); }
+.pb-sr-num { font-family: var(--mono); font-size: 12.5px; }
+.pb-capbar { height: 5px; border-radius: 9px; background: var(--line); margin-top: 6px; overflow: hidden; }
+.pb-capfill { height: 100%; background: var(--ok); border-radius: 9px; }
+.pb-capfill.full { background: var(--accent); }
+.pb-tip { display: flex; flex-direction: column; gap: 4px; font-size: 13px; max-width: 320px; }
+.pb-tip span { color: inherit; opacity: .8; font-size: 12px; }
+@media (max-width: 1000px) { .cov-stats { grid-template-columns: 1fr 1fr; } }
+
 /* ---- token gate ------------------------------------------------------------------------------------ */
 .gate { position: fixed; inset: 0; z-index: 95; display: none; grid-template-columns: 1.1fr 1fr; background: var(--paper); }
 .gate.open { display: grid; }
@@ -310,9 +371,13 @@ td .tiny { font: 500 11.5px/1.4 var(--mono); color: var(--mut); }
 
     <!-- CATALOG -->
     <section class="view" data-view="catalog">
-      <div class="tools"><span id="cat-count"></span><span style="display:flex;gap:8px;flex-wrap:wrap"><button id="import-c3" class="ghost small">Import from Channel3</button><button id="open-add" class="small accent">+ Add product</button></span></div>
-      <div class="filters" id="cat-filters" style="margin-bottom:16px"></div>
-      <div class="pgrid" id="pgrid"></div>
+      <div class="tools"><span id="cat-count"></span><span style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="seg" id="cat-mode"></span><button id="import-c3" class="ghost small">Import from Channel3</button><button id="open-add" class="small accent">+ Add product</button></span></div>
+      <div id="cat-cards">
+        <div class="filters" id="cat-filters" style="margin-bottom:16px"></div>
+        <div class="pgrid" id="pgrid"></div>
+      </div>
+      <div class="card grid-card" id="cat-table" hidden><div id="cat-grid-tools"></div><div id="cat-grid"></div>
+        <p class="grid-credit">Double-click a name or category to edit it in place. Prices are locked. Table by AG Grid.</p></div>
     </section>
 
     <!-- PRICE LAB -->
@@ -325,18 +390,34 @@ td .tiny { font: 500 11.5px/1.4 var(--mono); color: var(--mut); }
 
     <!-- REFUNDS -->
     <section class="view" data-view="refunds">
-      <div class="filters" id="filters"></div>
+      <div class="view-tools"><div class="filters" id="filters"></div><span class="seg" id="refund-mode"></span></div>
       <div class="slips" id="slips"></div>
+      <div class="card grid-card" id="refund-table" hidden><div id="refund-grid-tools"></div><div id="refund-grid"></div>
+        <p class="grid-credit">Every decision the watcher made, filterable and exportable for your books. The totals row follows your filters. Table by AG Grid.</p></div>
+    </section>
+
+    <!-- COVERAGE TIMELINE -->
+    <section class="view" data-view="coverage">
+      <div class="cov-stats" id="cov-stats"></div>
+      <div class="card">
+        <div class="cov-head">
+          <div class="legend"><span><i style="background:#3fa66b"></i>window open</span><span><i style="background:#f08c2e"></i>cap used up</span><span><i style="background:#9b9b9b"></i>window closed</span><span><i class="dia" style="background:#16a3a3"></i>refund sent</span><span><i class="dia" style="background:#e04b4b"></i>blocked</span></div>
+          <span style="display:flex;gap:6px"><button class="ghost small" type="button" id="cov-out" aria-label="Zoom out">−</button><button class="ghost small" type="button" id="cov-in" aria-label="Zoom in">+</button><button class="ghost small" type="button" id="cov-now">Today</button></span>
+        </div>
+        <div class="pb-sched-empty empty-note" id="cov-empty"><b>No covered orders yet.</b>Activate a promise and buy something on the storefront; its protection window will appear here.</div>
+        <div class="pb-sched-host" hidden></div>
+        <p class="grid-credit">Hover a bar or diamond for details. Ctrl + scroll to zoom. Timeline by Bryntum Scheduler.</p>
+      </div>
     </section>
 
     <!-- ORDERS -->
     <section class="view" data-view="orders">
-      <div class="card"><div class="tools" id="order-tools"></div><div class="tablewrap" id="orders-table"></div></div>
+      <div class="card grid-card"><div class="tools" id="order-tools"></div><div class="tablewrap" id="orders-table"></div></div>
     </section>
 
     <!-- WEBHOOKS -->
     <section class="view" data-view="webhooks">
-      <div class="card"><div class="tablewrap" id="ledger"></div></div>
+      <div class="card grid-card"><div id="ledger-tools"></div><div class="tablewrap" id="ledger"></div></div>
       <div class="howto">
         <div><b>01</b>PayPal developer dashboard → your app → <b style="display:inline;font-size:inherit;color:inherit">Webhooks → Add webhook</b>.</div>
         <div><b>02</b>URL: <code id="hook-url"></code>. Events: <code>PAYMENT.CAPTURE.COMPLETED</code>, <code>PAYMENT.CAPTURE.REFUNDED</code>.</div>
@@ -375,6 +456,9 @@ td .tiny { font: 500 11.5px/1.4 var(--mono); color: var(--mut); }
 </div>
 
 <script src="/static/pb.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@34.3.1/dist/ag-grid-community.min.js"></script>
+<script src="/static/console-grids.js"></script>
+<script src="/static/console-timeline.js"></script>
 <script>
 const store = {
   get(k) { try { return sessionStorage.getItem(k) || ''; } catch { return ''; } },
@@ -422,7 +506,8 @@ async function busy(btn, fn) {
 }
 
 // ---- state + routing --------------------------------------------------------------------------------
-const S = {products: [], stats: null, policy: null, settle: [], orders: [], ledger: [], showUnpaid: false, filter: 'all', lab: {id: null, pct: 20}};
+const S = {products: [], stats: null, policy: null, settle: [], orders: [], ledger: [], showUnpaid: false, filter: 'all', lab: {id: null, pct: 20},
+  catMode: store.get('pb_cat_mode') || 'cards', refundMode: store.get('pb_refund_mode') || 'receipts'};
 const ICON = {
   overview: 'M3 13h8V3H3zm10 8h8V11h-8zM3 21h8v-6H3zm10-18v6h8V3z',
   promise: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',
@@ -430,6 +515,7 @@ const ICON = {
   lab: 'M9 3h6M10 3v6L4 19a1.5 1.5 0 0 0 1.3 2h13.4a1.5 1.5 0 0 0 1.3-2L14 9V3M7 15h10',
   refunds: 'M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2zM9 8h6M9 12h6',
   orders: 'M4 5h2l2 11h10l2-8H7M9 20.5a.5.5 0 1 0 0-1M17 20.5a.5.5 0 1 0 0-1',
+  coverage: 'M4 5h16v15H4zM4 10h16M9 3v4M15 3v4M7 14h6M10 17h7',
   webhooks: 'M8 9a4 4 0 1 1 6.5 3.1L17 17M7 17h7M17 17a2 2 0 1 0 0 .1M7 17a2 2 0 1 0 0 .1M12 5.5V3',
 };
 const VIEWS = [
@@ -438,6 +524,7 @@ const VIEWS = [
   {id: 'catalog', label: 'Catalog', group: 'Desk', sub: () => 'The products on your storefront.'},
   {id: 'lab', label: 'Price lab', group: 'Desk', sub: () => 'Simulate a market price drop and watch the refund engine react.'},
   {id: 'refunds', label: 'Refund decisions', group: 'Ledger', count: () => S.settle.length, sub: () => 'Every refund and every guardrail block, with the reason.'},
+  {id: 'coverage', label: 'Coverage timeline', group: 'Ledger', count: () => PBTimeline.covered(S).length, sub: () => 'Each covered order’s protection window, and every refund decision on it, over time.'},
   {id: 'orders', label: 'Orders', group: 'Ledger', count: () => paidOrders().length, sub: () => 'Payments received through PayPal.'},
   {id: 'webhooks', label: 'Webhooks', group: 'Ledger', count: () => S.ledger.length, sub: () => 'Signed confirmations PayPal sends back.'},
 ];
@@ -466,6 +553,14 @@ function showView() {
   document.title = `${v.label} · PriceBack Console`;
   renderMenu();
   window.scrollTo({top: 0});
+  if (cur === 'coverage' && S.stats) renderCoverage();
+}
+
+// A two-option pill switch (cards / table, receipts / table). The choice is remembered for this tab.
+function seg(el, key, options, onChange) {
+  el.replaceChildren(...options.map(([k, label]) => h('button', {type: 'button', 'aria-pressed': String(S[key] === k), onclick: () => {
+    S[key] = k; store.set('pb_' + key.replace('Mode', '_mode'), k); onChange();
+  }}, label)));
 }
 window.addEventListener('hashchange', showView);
 document.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) location.hash = g.dataset.go; });
@@ -637,9 +732,46 @@ $('#compile').onclick = (ev) => busy(ev.currentTarget, async () => {
 });
 
 // ---- catalog ------------------------------------------------------------------------------------------------
+let catSelected = [];
+function renderCatalogTable() {
+  if (!$('#cat-grid-tools').childElementCount) {
+    const removeBtn = h('button', {type: 'button', class: 'ghost small', id: 'cat-remove', disabled: true}, 'Remove selected');
+    let armed = false;
+    removeBtn.onclick = () => {
+      if (!catSelected.length) return;
+      if (!armed) { armed = true; removeBtn.textContent = `Click to remove ${catSelected.length}`; removeBtn.classList.add('accent'); setTimeout(() => { armed = false; removeBtn.classList.remove('accent'); updateRemove(); }, 3000); return; }
+      armed = false;
+      busy(removeBtn, async () => {
+        const n = catSelected.length;
+        for (const p of catSelected) await api(`/api/products/${encodeURIComponent(p.id)}`, {method: 'DELETE'});
+        toast(`Removed ${n} product${n === 1 ? '' : 's'}.`);
+        catSelected = []; PBGrid.deselectAll('catalog');
+        await loadProducts(); await refresh();
+      });
+    };
+    $('#cat-grid-tools').replaceChildren(PBGrid.toolbar('catalog', 'the catalog', [removeBtn]));
+  }
+  PBGrid.catalog($('#cat-grid'), S.products, {
+    selectionChanged: (rows) => { catSelected = rows; updateRemove(); },
+    changed: async () => { await loadProducts(); renderCatalog(); },
+  });
+}
+function updateRemove() {
+  const b = $('#cat-remove');
+  if (!b) return;
+  b.disabled = !catSelected.length;
+  b.classList.remove('accent');
+  b.textContent = catSelected.length ? `Remove selected (${catSelected.length})` : 'Remove selected';
+}
+
 function renderCatalog() {
   const sim = (S.stats && S.stats.simulated_prices) || {};
   $('#cat-count').textContent = `${S.products.length} product${S.products.length === 1 ? '' : 's'} on the storefront`;
+  const asTable = PBGrid.ok && S.catMode === 'table' && S.products.length > 0;
+  if (PBGrid.ok) seg($('#cat-mode'), 'catMode', [['cards', 'Cards'], ['table', 'Table']], renderCatalog);
+  $('#cat-cards').hidden = asTable;
+  $('#cat-table').hidden = !asTable;
+  if (asTable) { renderCatalogTable(); return; }
   if (!S.products.length) {
     $('#pgrid').replaceChildren(h('div', {class: 'card empty-note', style: 'grid-column:1/-1'}, h('b', {}, 'No products yet.'), 'Add your first product, or import from Channel3 if you have a key.',
       h('div', {style: 'margin-top:14px'}, h('button', {class: 'accent small', onclick: () => openDrawer()}, '+ Add product'))));
@@ -812,6 +944,15 @@ function renderRefunds() {
   $('#filters').replaceChildren(...[['all', 'All'], ['refund', 'Refunds'], ['blocked', 'Blocked']].map(([k, label]) =>
     h('button', {type: 'button', 'aria-pressed': String(S.filter === k), onclick: () => { S.filter = k; renderRefunds(); }}, `${label} · ${counts[k]}`)));
   const rows = S.settle.filter((x) => S.filter === 'all' || x.action === S.filter);
+  const asTable = PBGrid.ok && S.refundMode === 'table' && rows.length > 0;
+  if (PBGrid.ok) seg($('#refund-mode'), 'refundMode', [['receipts', 'Receipts'], ['table', 'Table']], renderRefunds);
+  $('#slips').hidden = asTable;
+  $('#refund-table').hidden = !asTable;
+  if (asTable) {
+    if (!$('#refund-grid-tools').childElementCount) $('#refund-grid-tools').replaceChildren(PBGrid.toolbar('refunds', 'refund decisions'));
+    PBGrid.refunds($('#refund-grid'), rows);
+    return;
+  }
   if (!rows.length) { $('#slips').replaceChildren(h('div', {class: 'card empty-note'}, h('b', {}, 'No decisions yet.'), 'They appear when the watcher finds a lower price on a covered order. Try the Price lab.')); return; }
   $('#slips').replaceChildren(...rows.map((x) => {
     const refund = x.action === 'refund';
@@ -843,6 +984,16 @@ function renderOrders() {
   $('#order-tools').replaceChildren(h('span', {}, `${paidOrders().length} paid`),
     h('label', {}, h('input', {type: 'checkbox', checked: S.showUnpaid, onchange: (e) => { S.showUnpaid = e.target.checked; renderOrders(); }}), `Show unfinished checkouts (${unfinished})`));
   const rows = S.showUnpaid ? S.orders : paidOrders();
+  if (PBGrid.ok && (rows.length || $('#order-tools').dataset.grid)) {
+    const tools = $('#order-tools');
+    if (!tools.dataset.grid) {
+      tools.dataset.grid = '1';
+      tools.after(PBGrid.toolbar('orders', 'orders'));
+      $('#orders-table').replaceChildren();
+    }
+    PBGrid.orders($('#orders-table'), rows);
+    return;
+  }
   $('#orders-table').replaceChildren(table([
     {label: '#', get: (r) => String(r.id)},
     {label: 'Product', get: (r) => h('div', {}, h('div', {style: 'font-weight:600'}, r.title), h('div', {class: 'tiny'}, r.paypal_order_id))},
@@ -856,6 +1007,11 @@ function renderOrders() {
 }
 function renderLedger() {
   $('#hook-url').textContent = `${location.origin}/api/webhooks/paypal`;
+  if (PBGrid.ok && (S.ledger.length || $('#ledger-tools').childElementCount)) {
+    if (!$('#ledger-tools').childElementCount) { $('#ledger-tools').replaceChildren(PBGrid.toolbar('ledger', 'webhooks')); $('#ledger').replaceChildren(); }
+    PBGrid.ledger($('#ledger'), S.ledger);
+    return;
+  }
   $('#ledger').replaceChildren(table([
     {label: 'Received', get: (r) => when(r.received_at)},
     {label: 'Event', get: (r) => h('span', {class: 'mono'}, r.event_type)},
@@ -863,6 +1019,25 @@ function renderLedger() {
     {label: 'Signature', get: (r) => r.verified ? chip('verified', 'ok') : chip('unverified', 'bad')}], S.ledger,
     ['No webhooks received yet.', 'Normal on localhost: PayPal cannot reach your computer. The steps below explain how to connect it.']));
 }
+
+// ---- coverage timeline (Bryntum Scheduler) -------------------------------------------------------------------------
+function renderCoverage() {
+  const list = PBTimeline.covered(S);
+  const now = Date.now() / 1000;
+  const open = list.filter((o) => o.cover_ends_at > now);
+  const next = open.map((o) => o.cover_ends_at).sort((a, b) => a - b)[0];
+  const k = (label, v, cls, d) => h('div', {class: 'kpi'}, h('div', {class: 'k'}, label), h('div', {class: 'v ' + (cls || '')}, v), d ? h('div', {class: 'd'}, d) : null);
+  const days = next ? Math.ceil((next - now) / 86400) : 0;
+  $('#cov-stats').replaceChildren(
+    k('Covered orders', String(list.length), '', `${open.length} window${open.length === 1 ? '' : 's'} still open`),
+    k('Open exposure', money(S.stats.open_exposure_cents), 'accent', 'worst case still payable'),
+    k('Refunded so far', money(S.stats.refunded_cents), 'ok', `${S.settle.filter((x) => x.action === 'refund').length} refund decisions`),
+    k('Next window closes', next ? `${days} day${days === 1 ? '' : 's'}` : '—', '', next ? new Date(next * 1000).toLocaleDateString([], {month: 'short', day: 'numeric'}) : 'nothing open'));
+  PBTimeline.render($('[data-view="coverage"]'), S);
+}
+$('#cov-in').onclick = () => PBTimeline.zoom(1);
+$('#cov-out').onclick = () => PBTimeline.zoom(-1);
+$('#cov-now').onclick = () => PBTimeline.today();
 
 // ---- watcher -----------------------------------------------------------------------------------------------------
 async function runWatcher(btn) {
@@ -880,6 +1055,7 @@ async function refresh() {
   Object.assign(S, {policy: pol, stats: st, settle: se, orders: od, ledger: lg});
   renderSide(); renderOverview(); renderContract(); renderCatalog(); renderRefunds(); renderOrders(); renderLedger();
   if (current() !== 'lab' || !document.activeElement || document.activeElement.type !== 'range') renderLab();
+  if (current() === 'coverage') renderCoverage();
   renderMenu();
 }
 

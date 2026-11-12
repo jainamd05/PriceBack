@@ -67,6 +67,43 @@ CREATE TABLE IF NOT EXISTS settlements (
     created_at INTEGER NOT NULL
 );
 
+-- Shopper accounts: passwordless sign-in with a one-time code sent to their email.
+CREATE TABLE IF NOT EXISTS login_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    code_hash TEXT NOT NULL,           -- sha256(salt + code); the code itself is never stored
+    salt TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    used INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS login_codes_email ON login_codes(email, created_at);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash TEXT PRIMARY KEY,       -- sha256 of the cookie value
+    email TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+
+-- Outbox: one row per message to a shopper. UNIQUE(kind, ref) makes every event notify exactly once.
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    kind TEXT NOT NULL,                -- order_confirmed | refund_sent | refund_blocked | refund_failed
+    ref TEXT NOT NULL,                 -- order id or settlement id the message is about
+    order_id INTEGER,
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    status TEXT NOT NULL,              -- queued | sent | not_configured | failed
+    channel TEXT,                      -- e.g. 'email:brevo, zapier'
+    error TEXT,
+    created_at INTEGER NOT NULL,
+    sent_at INTEGER,
+    UNIQUE(kind, ref)
+);
+
 CREATE TABLE IF NOT EXISTS webhook_events (
     event_id TEXT PRIMARY KEY,
     event_type TEXT NOT NULL,
@@ -111,3 +148,6 @@ def init_db() -> None:
         cols = {r["name"] for r in conn.execute("PRAGMA table_info(products)")}
         if "category" not in cols:  # databases created before categories existed
             conn.execute("ALTER TABLE products ADD COLUMN category TEXT")
+        ocols = {r["name"] for r in conn.execute("PRAGMA table_info(orders)")}
+        if "buyer_email" not in ocols:  # databases created before shopper accounts existed
+            conn.execute("ALTER TABLE orders ADD COLUMN buyer_email TEXT")

@@ -25,5 +25,17 @@ services:
         generateValue: true
       - key: WATCH_INTERVAL_SECONDS
         value: "60"
+      - key: BREVO_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: ZAPIER_HOOK_URL
+        sync: false
+      - key: DEMO_BUYER_EMAIL
+        sync: false
+      - key: DEMO_BUYER_PASSWORD
+        sync: false
+      - key: DEMO_SELF_SERVE
+        value: "true"
       # NOTE: the free plan's disk is ephemeral, so the SQLite DB resets on each deploy.
       # Fine for a demo. For durability attach a Render disk and point PRICEBACK_DB at it.

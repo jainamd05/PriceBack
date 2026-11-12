@@ -14,8 +14,16 @@ def client(paypal):
     with TestClient(app) as c:
         c.pid = {name: c.post("/api/products", json={"title": title, "price": price}).json()["id"]
                  for name, title, price in (("headphones", "Over-Ear Headphones", 129), ("mouse", "Wireless Mouse", 45))}
+        sign_in(c)
         yield c
     app.dependency_overrides.clear()
+
+
+def sign_in(client, email="shopper@example.com"):
+    r = client.post("/api/auth/start", json={"email": email})
+    assert r.status_code == 200, r.text
+    r = client.post("/api/auth/verify", json={"email": email, "code": r.json()["dev_code"]})
+    assert r.status_code == 200, r.text
 
 
 def activate(client, text=PROMISE):
@@ -78,6 +86,17 @@ def test_amount_mismatch_is_not_guaranteed(client, paypal):
     buy(client)
     o = client.get("/api/orders").json()[0]
     assert o["status"] == "AMOUNT_MISMATCH" and o["guaranteed"] == 0
+
+
+def test_orders_expose_protection_window(client, paypal):
+    buy(client)  # before any promise: no window
+    activate(client)
+    buy(client)
+    covered, uncovered = client.get("/api/orders").json()
+    assert (covered["window_days"], covered["max_refund_cents"]) == (14, 2000)
+    assert covered["cover_ends_at"] == covered["captured_at"] + 14 * 86400
+    assert "policy_json" not in covered
+    assert uncovered["guaranteed"] == 0 and uncovered["cover_ends_at"] is None
 
 
 def test_order_before_promise_is_not_covered(client, paypal):

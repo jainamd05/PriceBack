@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Orders · PriceBack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/pb.css">
+<link rel="stylesheet" href="/static/store.css">
+<style>
+.acc { padding: 112px 0 60px; }
+.acc-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 26px; }
+.acc-head h1 { font-size: clamp(40px, 5vw, 70px); line-height: .92; letter-spacing: -.055em; margin: 10px 0 0; font-weight: 800; }
+.acc-head h1 .serif { color: var(--accent); }
+.acc-who { display: flex; gap: 10px; align-items: center; font: 500 13px/1.3 var(--mono); color: var(--mut); flex-wrap: wrap; }
+.acc-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.steps { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 16px; }
+.steps ol { margin: 0; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 14px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; font: 14px/1.45 var(--display); color: var(--ink-2); }
+.steps li::before { content: counter(s, decimal-leading-zero); font: 600 12px/1.9 var(--mono); color: var(--accent); }
+.steps .line.copy button.link { font: 600 12.5px/1.3 var(--mono); color: var(--ink); text-decoration-style: dotted; word-break: break-all; text-align: right; }
+.order { background: var(--card); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 22px; animation: rise .35s var(--ease); }
+.o-top { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 18px; padding: 20px; align-items: center; }
+.o-top .art, .o-top .mono-art { width: 96px; height: 96px; border-radius: 16px; overflow: hidden; background: #fff; position: relative; }
+.o-top .art img { width: 100%; height: 100%; object-fit: cover; }
+.o-top .mono-art span { font-size: 70px; }
+.o-top h2 { margin: 6px 0 6px; font-size: 21px; letter-spacing: -.03em; line-height: 1.15; }
+.o-top .paid { text-align: right; font: 600 26px/1 var(--mono); letter-spacing: -.05em; }
+.o-top .paid small { display: block; font: 500 11px/1.4 var(--mono); color: var(--mut); letter-spacing: 0; margin-top: 6px; }
+.o-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.o-bars { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px dashed var(--line-2); }
+.o-bars > div { padding: 16px 20px; }
+.o-bars > div + div { border-left: 1px dashed var(--line-2); }
+.o-bars .k { display: flex; justify-content: space-between; font: 600 10.5px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--mut); }
+.o-bars .k b { color: var(--ink); letter-spacing: 0; text-transform: none; font-size: 12.5px; }
+.bar { height: 7px; border-radius: 9px; background: var(--line); margin-top: 10px; overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 9px; background: var(--ok); }
+.bar i.full { background: var(--accent); }
+.o-lab { border-top: 1px dashed var(--line-2); padding: 18px 20px; background: color-mix(in srgb, var(--accent) 5%, var(--card)); }
+.o-lab .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+.o-lab .chips-row button { padding: 8px 12px; font: 500 12.5px/1 var(--mono); background: transparent; color: var(--ink); border: 1px solid var(--line-2); }
+.o-lab .chips-row button.on, .o-lab .chips-row button:hover:not(:disabled) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.o-lab .chips-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.o-lab .est { font: 500 12.5px/1.4 var(--mono); color: var(--mut); margin-top: 10px; }
+.o-lab .est b { color: var(--ok); }
+.o-log { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px dashed var(--line-2); }
+.o-log > div { padding: 16px 20px; min-width: 0; }
+.o-log > div + div { border-left: 1px dashed var(--line-2); }
+.o-log ul { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.o-log li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; font-size: 13.5px; line-height: 1.35; }
+.o-log li .ic { font: 700 13px/1.3 var(--mono); }
+.o-log li .ic.ok { color: var(--ok); } .o-log li .ic.bad { color: var(--bad); } .o-log li .ic.mail { color: var(--accent); }
+.o-log li small { display: block; font: 500 11px/1.4 var(--mono); color: var(--mut); margin-top: 2px; }
+.o-log .none { color: var(--mut); font-size: 13px; margin-top: 10px; }
+.gate-card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 34px; box-shadow: var(--shadow); text-align: center; }
+.gate-card h2 { font-size: 30px; letter-spacing: -.04em; margin: 10px 0 8px; }
+.gate-card p { color: var(--mut); max-width: 46ch; margin: 0 auto 20px; }
+@media (max-width: 960px) { .acc-grid { grid-template-columns: 1fr; } .steps { position: static; order: -1; } }
+@media (max-width: 560px) {
+  .o-top { grid-template-columns: 64px minmax(0, 1fr); } .o-top .art, .o-top .mono-art { width: 64px; height: 64px; }
+  .o-top .paid { grid-column: 1 / -1; text-align: left; }
+  .o-bars, .o-log { grid-template-columns: 1fr; } .o-bars > div + div, .o-log > div + div { border-left: 0; border-top: 1px dashed var(--line-2); }
+}
+</style>
+</head>
+<body>
+<nav class="nav solid" id="nav">
+  <div class="wrap">
+    <a class="brand" href="/" id="brand">PriceBack</a>
+    <div class="nav-links">
+      <a href="/#shop" class="keep">Shop</a>
+      <a href="/#how">How it works</a>
+      <span class="chip dot">Sandbox</span>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap acc">
+  <div class="acc-head">
+    <div><div class="eyebrow">Your account</div><h1>My <span class="serif">orders.</span></h1></div>
+    <div class="acc-who" id="who"></div>
+  </div>
+  <div class="acc-grid">
+    <div id="orders"><div class="eyebrow">Loading…</div></div>
+    <aside class="steps" id="steps"></aside>
+  </div>
+</main>
+
+<script src="/static/pb.js"></script>
+<script src="/static/store.js"></script>
+<script>
+const chip = (text, cls = '') => h('span', {class: 'chip ' + cls}, text);
+const PCT = {};   // chosen demo drop per order
+let ORDERS = [];
+const daysLeft = (t) => Math.ceil((t * 1000 - Date.now()) / 86400000);
+
+function renderSteps() {
+  const d = ME.demo || {};
+  const copy = (label, value) => h('div', {class: 'line copy'}, h('span', {}, label),
+    h('button', {type: 'button', class: 'link', title: 'Copy', onclick: (e) => { navigator.clipboard?.writeText(value); e.currentTarget.textContent = 'copied ✓'; }}, value));
+  $('#steps').replaceChildren(
+    h('div', {class: 'receipt'},
+      h('div', {class: 'eyebrow', style: 'text-align:center'}, 'Try the prototype'),
+      h('div', {class: 'rule'}),
+      h('ol', {},
+        h('li', {}, 'Sign in with your own email. Messages from PriceBack land there.'),
+        h('li', {}, 'Buy any product. On PayPal, log in with the sandbox buyer below: it is fake money.'),
+        h('li', {}, 'Come back here and simulate a price drop on your order.'),
+        h('li', {}, 'PayPal refunds the difference and you get an email within seconds.')),
+      d.buyer_email ? h('div', {}, h('div', {class: 'rule'}), h('div', {class: 'eyebrow'}, 'PayPal sandbox buyer'), copy('Email', d.buyer_email), d.buyer_password ? copy('Password', d.buyer_password) : null) : null,
+      h('div', {class: 'rule'}),
+      h('p', {class: 'mut', style: 'font-size:12px;margin:0'}, d.email_enabled ? 'Emails are sent for real, to your address.' : 'Email sending is off on this server, so messages are listed here instead of sent.')));
+}
+
+function renderWho() {
+  $('#who').replaceChildren(...(ME.email ? [h('span', {}, 'Signed in as ', h('b', {style: 'color:var(--ink)'}, ME.email)),
+    h('button', {type: 'button', class: 'ghost small', onclick: async () => { await signOut(); location.reload(); }}, 'Sign out')] : []));
+}
+
+function orderCard(o) {
+  const covered = o.covered && o.status === 'CAPTURED';
+  const open = covered && o.cover_ends_at && o.cover_ends_at * 1000 > Date.now();
+  const cap = Math.min(o.max_refund_cents || 0, o.paid_cents);
+  const used = cap ? Math.min(100, Math.round((o.refunded_cents / cap) * 100)) : 0;
+  const winPct = covered && o.window_days ? Math.max(0, Math.min(100, 100 - (daysLeft(o.cover_ends_at) / o.window_days) * 100)) : 100;
+  const status = o.status === 'CAPTURED' ? chip('paid', 'ok') : chip(human(o.status).toLowerCase(), /PENDING/.test(o.status) ? 'warn' : 'bad');
+
+  const parts = [h('div', {class: 'o-top'}, productArt({title: o.title, image_url: o.image_url}),
+    h('div', {style: 'min-width:0'}, h('div', {class: 'o-meta'}, h('span', {class: 'eyebrow'}, `Order #${o.id}`), status,
+      covered ? chip(open ? 'price protected' : 'window closed', open ? 'accent' : '') : chip('not covered', 'warn')),
+      h('h2', {}, h('a', {href: `/product/${encodeURIComponent(o.product_id)}`, style: 'text-decoration:none'}, o.title)),
+      h('div', {class: 'mut', style: 'font:500 12px/1.4 var(--mono)'}, `Paid ${when(o.captured_at || o.created_at)}`)),
+    h('div', {class: 'paid'}, money(o.paid_cents), h('small', {}, o.refunded_cents ? `${money(o.refunded_cents)} refunded` : 'nothing refunded yet')))];
+
+  if (covered) {
+    parts.push(h('div', {class: 'o-bars'},
+      h('div', {}, h('div', {class: 'k'}, h('span', {}, 'Protection window'), h('b', {}, open ? `${daysLeft(o.cover_ends_at)} days left · until ${new Date(o.cover_ends_at * 1000).toLocaleDateString([], {month: 'short', day: 'numeric'})}` : 'closed')),
+        h('div', {class: 'bar'}, h('i', {style: `width:${winPct}%`}))),
+      h('div', {}, h('div', {class: 'k'}, h('span', {}, 'Refunded so far'), h('b', {}, `${money(o.refunded_cents)} of ${money(cap)} max`)),
+        h('div', {class: 'bar'}, h('i', {class: used >= 100 ? 'full' : '', style: `width:${used}%`})))));
+  }
+  if (open && ME.demo && ME.demo.self_serve_drops) parts.push(dropLab(o, cap));
+
+  const dec = o.decisions.map((x) => h('li', {}, h('span', {class: 'ic ' + (x.action === 'refund' ? 'ok' : 'bad')}, x.action === 'refund' ? '↩' : '✕'),
+    h('div', {}, x.action === 'refund' ? `${money(x.amount_cents)} refunded to your PayPal` : 'Price dropped, no refund this time',
+      h('small', {}, `market ${money(x.market_cents)} · ${human(x.reason)} · ${x.price_source} · ${when(x.created_at)}`))));
+  const mails = o.emails.map((e) => h('li', {}, h('span', {class: 'ic mail'}, '✉'),
+    h('div', {}, e.subject, h('small', {}, {sent: `sent ${ago(e.sent_at)}${e.channel ? ' via ' + e.channel : ''}`, queued: 'sending…', sending: 'sending…',
+      not_configured: 'recorded (email sending is off on this server)', failed: 'could not be sent'}[e.status] || e.status))));
+  parts.push(h('div', {class: 'o-log'},
+    h('div', {}, h('div', {class: 'eyebrow'}, 'Refund decisions'), dec.length ? h('ul', {}, ...dec) : h('p', {class: 'none'}, 'No price drop yet.')),
+    h('div', {}, h('div', {class: 'eyebrow'}, 'Emails to you'), mails.length ? h('ul', {}, ...mails) : h('p', {class: 'none'}, 'Nothing yet.'))));
+  return h('article', {class: 'order', id: `o${o.id}`}, ...parts);
+}
+
+function dropLab(o, cap) {
+  if (PCT[o.id] === undefined) PCT[o.id] = 10;
+  const box = h('div', {class: 'o-lab'});
+  const draw = () => {
+    const pct = PCT[o.id];
+    const market = Math.round(o.paid_cents * (1 - pct / 100));
+    const owed = Math.max(0, o.paid_cents - market - o.refunded_cents);
+    const est = Math.min(owed, Math.max(0, cap - o.refunded_cents));
+    const btn = h('button', {type: 'button', class: 'accent small'}, 'Simulate this price drop', h('span', {class: 'arrow'}, '→'));
+    btn.onclick = () => drop(o, pct, btn);
+    box.replaceChildren(
+      h('div', {class: 'eyebrow'}, 'Demo · simulate a price drop on this order'),
+      h('div', {class: 'row'}, h('div', {class: 'chips-row'}, ...[5, 10, 20, 30, 50].map((n) => h('button', {type: 'button', class: n === pct ? 'on' : null, onclick: () => { PCT[o.id] = n; draw(); }}, `−${n}%`))), btn),
+      h('div', {class: 'est'}, `Market price would be ${money(market)}. Expected refund: `, h('b', {}, money(est)),
+        est < owed ? ' (limited by the per-order cap).' : est ? '.' : ' (nothing more to refund at this price).'));
+  };
+  draw();
+  return box;
+}
+
+async function drop(o, pct, btn) {
+  btn.disabled = true; btn.classList.add('busy'); btn.textContent = 'Asking PayPal…';
+  try {
+    const r = await jfetch(`/api/me/orders/${o.id}/simulate-drop`, {method: 'POST', body: JSON.stringify({drop_pct: pct})});
+    if (r.action === 'refund') toast(`${money(r.amount_cents)} refunded through PayPal${r.status && r.status !== 'COMPLETED' ? ` (${human(r.status).toLowerCase()})` : ''}. Check your inbox.`);
+    else if (r.action === 'blocked') toast(`No refund: ${human(r.reason)}. You were emailed about it.`, 'err');
+    else toast(`Nothing to refund: ${human(r.reason)}.`, 'err');
+    await load();
+    setTimeout(load, 4000);   // email delivery happens in the background
+  } catch (e) {
+    toast(e.message, 'err');
+    btn.disabled = false; btn.classList.remove('busy'); btn.textContent = 'Simulate this price drop';
+  }
+}
+
+async function load() {
+  await loadMe();
+  renderWho(); renderSteps();
+  if (!ME.email) {
+    $('#orders').replaceChildren(h('div', {class: 'gate-card'}, h('div', {class: 'eyebrow'}, 'Sign in'), h('h2', {}, 'See your orders and refunds'),
+      h('p', {}, 'Use the email you bought with. We send you a one-time code, no password.'),
+      h('button', {type: 'button', class: 'accent', onclick: () => signIn().then(() => load()).catch(() => {})}, 'Sign in with email', h('span', {class: 'arrow'}, '→'))));
+    return;
+  }
+  try { ORDERS = await jfetch('/api/me/orders'); }
+  catch (e) { if (e.status === 401) { ME.email = null; ME.loaded = null; return load(); } throw e; }
+  $('#orders').replaceChildren(...(ORDERS.length ? ORDERS.map(orderCard) : [h('div', {class: 'gate-card'}, h('div', {class: 'eyebrow'}, 'No orders yet'),
+    h('h2', {}, 'Buy something to try it'), h('p', {}, 'Every product is watched after you buy it. Then come back here to simulate a price drop.'),
+    h('a', {class: 'btn accent', href: '/#shop'}, 'Go to the shop', h('span', {class: 'arrow'}, '→')))]));
+}
+
+initNav();
+load().catch((e) => toast(e.message, 'err'));
+setInterval(() => { if (!document.hidden && ME.email && !$('.modal') && !$('.busy')) load().catch(() => {}); }, 15000);
+</script>
+</body>
+</html>

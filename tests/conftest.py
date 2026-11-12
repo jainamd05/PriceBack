@@ -14,8 +14,12 @@ from app.models import Policy  # noqa: E402
 def env(tmp_path, monkeypatch):
     monkeypatch.setenv("PRICEBACK_DB", str(tmp_path / "test.db"))
     for k in ("GEMINI_API_KEY", "CHANNEL3_API_KEY", "ADMIN_TOKEN", "PAYPAL_WEBHOOK_ID",
-              "ALLOW_UNVERIFIED_WEBHOOKS", "WATCH_INTERVAL_SECONDS"):
+              "ALLOW_UNVERIFIED_WEBHOOKS", "WATCH_INTERVAL_SECONDS", "BREVO_API_KEY", "MAIL_FROM",
+              "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD",
+              "ZAPIER_HOOK_URL", "DEMO_BUYER_EMAIL", "DEMO_BUYER_PASSWORD", "DEMO_SELF_SERVE"):
         monkeypatch.delenv(k, raising=False)
+    from app import notify
+    monkeypatch.setattr(notify, "SYNC", True)  # deliver notifications inline
     monkeypatch.setenv("PAYPAL_CLIENT_ID", "test-id")
     monkeypatch.setenv("PAYPAL_CLIENT_SECRET", "test-secret")
     monkeypatch.setenv("PUBLIC_BASE_URL", "http://testserver")

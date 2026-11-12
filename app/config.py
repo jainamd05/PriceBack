@@ -36,6 +36,18 @@ class Settings:
     db_path: str
     watch_interval_seconds: int
     default_daily_budget: float
+    # Shopper accounts + notifications
+    brevo_api_key: str             # transactional email over HTTPS (Render's free plan blocks SMTP)
+    mail_from: str                 # the From address (verified in Brevo, or your SMTP login)
+    smtp_host: str                 # optional: send with smtplib instead (e.g. smtp.gmail.com); blocked on Render free
+    smtp_port: int
+    smtp_user: str
+    smtp_password: str
+    mail_from_name: str
+    zapier_hook_url: str           # optional: every shopper event is also POSTed to this Zapier Catch Hook
+    demo_buyer_email: str          # PayPal *sandbox* buyer login shown to testers (fake money only)
+    demo_buyer_password: str
+    demo_self_serve: bool          # shoppers may simulate a price drop on their own order
 
 
 def get_settings() -> Settings:
@@ -58,4 +70,15 @@ def get_settings() -> Settings:
         db_path=os.getenv("PRICEBACK_DB", "priceback.db"),
         watch_interval_seconds=int(os.getenv("WATCH_INTERVAL_SECONDS", "0")),
         default_daily_budget=float(os.getenv("DEFAULT_DAILY_BUDGET", "100")),
+        brevo_api_key=os.getenv("BREVO_API_KEY", "").strip(),
+        mail_from=(os.getenv("MAIL_FROM", "").strip() or os.getenv("SMTP_USER", "").strip()),
+        smtp_host=os.getenv("SMTP_HOST", "").strip(),
+        smtp_port=int(os.getenv("SMTP_PORT", "587") or 587),
+        smtp_user=os.getenv("SMTP_USER", "").strip(),
+        smtp_password=os.getenv("SMTP_PASSWORD", "").replace(" ", ""),
+        mail_from_name=os.getenv("MAIL_FROM_NAME", "PriceBack").strip() or "PriceBack",
+        zapier_hook_url=os.getenv("ZAPIER_HOOK_URL", "").strip(),
+        demo_buyer_email=os.getenv("DEMO_BUYER_EMAIL", "").strip(),
+        demo_buyer_password=os.getenv("DEMO_BUYER_PASSWORD", "").strip(),
+        demo_self_serve=_bool("DEMO_SELF_SERVE", True),
     )
