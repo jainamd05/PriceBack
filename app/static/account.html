@@ -108,7 +108,8 @@ function renderSteps() {
         h('li', {}, 'Sign in with your own email. Messages from PriceBack land there.'),
         h('li', {}, 'Buy any product. On PayPal, log in with the sandbox buyer below: it is fake money.'),
         h('li', {}, 'Come back here and simulate a price drop on your order.'),
-        h('li', {}, 'PayPal refunds the difference and you get an email within seconds.')),
+        h('li', {}, 'PayPal refunds the difference and you get an email within seconds.'),
+        d.merchant_guest ? h('li', {}, 'See the merchant side: ', h('a', {href: '/merchant'}, 'open the console'), ' and choose “Explore as a guest”.') : null),
       d.buyer_email ? h('div', {}, h('div', {class: 'rule'}), h('div', {class: 'eyebrow'}, 'PayPal sandbox buyer'), copy('Email', d.buyer_email), d.buyer_password ? copy('Password', d.buyer_password) : null) : null,
       h('div', {class: 'rule'}),
       h('p', {class: 'mut', style: 'font-size:12px;margin:0'}, d.email_enabled ? 'Emails are sent for real, to your address.' : 'Email sending is off on this server, so messages are listed here instead of sent.')));

@@ -66,7 +66,7 @@ async function jfetch(url, opts = {}) {
 }
 function loadMe() {
   if (!ME.loaded) ME.loaded = Promise.all([jfetch('/api/me').catch(() => ({email: null})), jfetch('/api/demo').catch(() => ({}))])
-    .then(([me, demo]) => { ME.email = me.email; ME.demo = demo; renderAccountNav(); return ME; });
+    .then(([me, demo]) => { ME.email = me.email; ME.demo = demo; renderAccountNav(); merchantLinks(); return ME; });
   return ME.loaded;
 }
 function renderAccountNav() {
@@ -75,6 +75,14 @@ function renderAccountNav() {
   slot.replaceChildren(ME.email
     ? h('a', {href: '/account', class: 'keep acct-link', title: ME.email}, h('span', {class: 'acct-dot'}, initial(ME.email)), 'My orders')
     : h('button', {type: 'button', class: 'ghost small acct-btn', onclick: () => signIn().catch(() => {})}, 'Sign in'));
+}
+/* When guest merchant mode is on, point judges at the console from every store page. */
+function merchantLinks() {
+  if (!ME.demo || !ME.demo.merchant_guest) return;
+  const chip = $('#nav .nav-links .chip');
+  if (chip && !$('#nav-merchant')) chip.before(h('a', {href: '/merchant', id: 'nav-merchant', title: 'Open the merchant console as a guest'}, 'Merchant view'));
+  const text = $('#demo-badge .demo-badge-text');
+  if (text && !$('#badge-merchant')) text.append(' ', h('a', {href: '/merchant', id: 'badge-merchant'}, 'Try the merchant side as a guest →'));
 }
 async function signOut() { await jfetch('/api/auth/logout', {method: 'POST'}); ME.email = null; renderAccountNav(); }
 
