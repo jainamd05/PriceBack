@@ -1,0 +1,816 @@
+{
+ "note": "Starting catalog + price promise, loaded when the database is empty (SEED_CATALOG=true). Exported from the local store.",
+ "policy": {
+  "text": "Refund the difference if the price drops within 14 days, up to $20 per order and $100 per day.",
+  "policy": {
+   "kind": "price_drop",
+   "window_days": 14,
+   "max_refund_per_order": 20.0,
+   "daily_budget": 100.0,
+   "min_drop_pct": 0.0
+  },
+  "source": "llm"
+ },
+ "products": [
+  {
+   "id": "m-83bbddb626",
+   "title": "Voltix 96W USB-C Laptop Charger",
+   "image_url": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 6900,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-78c4d13c76",
+   "title": "Voltix Braid USB-C to USB-C Cable, 2m",
+   "image_url": "https://images.unsplash.com/photo-1595756630452-736bc8ef3693?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 1500,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-cbce027afb",
+   "title": "Voltix Everyday Cable 3-Pack (USB-C, Lightning, Micro-USB)",
+   "image_url": "https://images.unsplash.com/photo-1573868388390-2739872961e6?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 2400,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-8602db8750",
+   "title": "Voltix Flash USB-A to Micro-USB Cable, Red",
+   "image_url": "https://images.unsplash.com/photo-1607125516845-fa8a14db083a?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 900,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-9ffd5499a9",
+   "title": "Voltix Halo Wireless Charger, White",
+   "image_url": "https://images.unsplash.com/photo-1591290619618-904f6dd935e3?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 2900,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-3836554cdc",
+   "title": "Voltix Nano 20W USB-C Wall Charger",
+   "image_url": "https://images.unsplash.com/photo-1770417999831-1c070eb628e6?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 1900,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-39badd21db",
+   "title": "Voltix Oak 15W Wireless Charging Pad",
+   "image_url": "https://images.unsplash.com/photo-1545235616-db3cd822ad8c?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 3900,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-a815ed5d88",
+   "title": "Voltix PowerSlab 20,000mAh Power Bank",
+   "image_url": "https://images.unsplash.com/photo-1760708825913-65a50b3dc39b?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 5900,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-9eb635e0ad",
+   "title": "Voltix Titan 240W USB-C Cable",
+   "image_url": "https://images.unsplash.com/photo-1762681290814-432626dffb8c?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 3500,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-e085227a2d",
+   "title": "Voltix Trek 10,000mAh Power Bank, Teal",
+   "image_url": "https://images.unsplash.com/photo-1566554738544-d962991c3fee?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 3500,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-f915ca6a51",
+   "title": "Voltix Trio 3-in-1 Braided Charging Cable, 1.2m",
+   "image_url": "https://images.unsplash.com/photo-1572721546624-05bf65ad7679?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 1900,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-14ecfd9b0b",
+   "title": "Voltix UltraLink 8K HDMI 2.1 Cable, 2m",
+   "image_url": "https://images.unsplash.com/photo-1760377821967-8bb2f250e041?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 2900,
+   "currency": "USD",
+   "category": "Cables & Chargers"
+  },
+  {
+   "id": "m-4794b051c5",
+   "title": "Aerolo Air 2 Pro 4K Drone",
+   "image_url": "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 89900,
+   "currency": "USD",
+   "category": "Cameras & Drones"
+  },
+  {
+   "id": "m-b4406f4833",
+   "title": "Aerolo Mini 3 Drone, 4K",
+   "image_url": "https://images.unsplash.com/photo-1514043454212-14c181f46583?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 45900,
+   "currency": "USD",
+   "category": "Cameras & Drones"
+  },
+  {
+   "id": "m-7b460e5801",
+   "title": "Aerolo Nano Fold Drone",
+   "image_url": "https://images.unsplash.com/photo-1782840766902-dbcbdd7e0d77?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 32900,
+   "currency": "USD",
+   "category": "Cameras & Drones"
+  },
+  {
+   "id": "m-9ef3a65c38",
+   "title": "Aerolo Scout Fold 4K Drone",
+   "image_url": "https://images.unsplash.com/photo-1520870121499-7dddb6ccbcde?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 69900,
+   "currency": "USD",
+   "category": "Cameras & Drones"
+  },
+  {
+   "id": "m-1657317dee",
+   "title": "Aerolo Vision Pro Camera Drone",
+   "image_url": "https://images.unsplash.com/photo-1521405924368-64c5b84bec60?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 119900,
+   "currency": "USD",
+   "category": "Cameras & Drones"
+  },
+  {
+   "id": "m-e474a12f98",
+   "title": "Lumora D750 DSLR Camera + 50mm Lens",
+   "image_url": "https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 129900,
+   "currency": "USD",
+   "category": "Cameras & Drones"
+  },
+  {
+   "id": "m-005c7d75a3",
+   "title": "Lumora XT-30 Mirrorless Camera + 18-55mm Lens",
+   "image_url": "https://images.unsplash.com/photo-1452780212940-6f5c0d14d848?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 84900,
+   "currency": "USD",
+   "category": "Cameras & Drones"
+  },
+  {
+   "id": "m-dca3fbab8f",
+   "title": "Aurelo Buds ANC, Obsidian",
+   "image_url": "https://images.unsplash.com/photo-1578319439584-104c94d37305?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 15900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-f8e3b0ae33",
+   "title": "Aurelo Buds Mini, Cloud White",
+   "image_url": "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 7900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-1a0eb7e3a7",
+   "title": "Aurelo Buds Pro 2",
+   "image_url": "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 12900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-4cb5fcfda4",
+   "title": "Aurelo Buds Pro ANC, Graphite",
+   "image_url": "https://images.unsplash.com/photo-1722439667098-f32094e3b1d4?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 13900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-ffe2b5b3fe",
+   "title": "Aurelo Buds Sport, Crimson",
+   "image_url": "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 8900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-5746e9a52a",
+   "title": "Aurelo Classic Wired Earpods, USB-C",
+   "image_url": "https://images.unsplash.com/photo-1608156639585-b3a032ef9689?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 1900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-f9275a4e34",
+   "title": "Aurelo Clear In-Ear Monitors with Detachable Cable",
+   "image_url": "https://images.unsplash.com/photo-1728583938892-9f45df2d4986?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 12900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-c8f3566bef",
+   "title": "Aurelo Pods Lite with Charging Case",
+   "image_url": "https://images.unsplash.com/photo-1505236273191-1dce886b01e9?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 9900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-69911eb935",
+   "title": "Aurelo Reference IEM, Braided Cable + Case",
+   "image_url": "https://images.unsplash.com/photo-1778854290451-7bdac49cd6e8?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 18900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-114c0acd62",
+   "title": "Aurelo Stage IEM Pro, Obsidian Gold",
+   "image_url": "https://images.unsplash.com/photo-1728583938904-7124b3e1e428?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 24900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-1e0842865e",
+   "title": "Aurelo Wired Earphones 3.5mm, Sage",
+   "image_url": "https://images.unsplash.com/photo-1742570922875-e5a60e950307?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 1900,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-912142aaa8",
+   "title": "Aurelo Wired Earphones, Lemon Yellow",
+   "image_url": "https://images.unsplash.com/photo-1788859223517-e384d81550c4?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 1500,
+   "currency": "USD",
+   "category": "Earbuds & Earphones"
+  },
+  {
+   "id": "m-28159446aa",
+   "title": "Pixelhaus Neon Wireless Controller",
+   "image_url": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 6500,
+   "currency": "USD",
+   "category": "Gaming & VR"
+  },
+  {
+   "id": "m-90a71fea62",
+   "title": "Pixelhaus Pro Controller, Arctic White",
+   "image_url": "https://images.unsplash.com/photo-1768166210760-9c9a4299c436?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 5900,
+   "currency": "USD",
+   "category": "Gaming & VR"
+  },
+  {
+   "id": "m-eb0586385b",
+   "title": "Pixelhaus Pro Controller, Midnight",
+   "image_url": "https://images.unsplash.com/photo-1774103249154-32adc0bf71a7?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 6900,
+   "currency": "USD",
+   "category": "Gaming & VR"
+  },
+  {
+   "id": "m-037781b9a5",
+   "title": "Pixelhaus Retro 16 Wired Controller",
+   "image_url": "https://images.unsplash.com/photo-1630051822408-b80dde2f5681?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 2500,
+   "currency": "USD",
+   "category": "Gaming & VR"
+  },
+  {
+   "id": "m-5f88d16324",
+   "title": "Pixelhaus Retro 64 Controller, Grape",
+   "image_url": "https://images.unsplash.com/photo-1777971477431-af52e769612e?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 4500,
+   "currency": "USD",
+   "category": "Gaming & VR"
+  },
+  {
+   "id": "m-ea25826ecf",
+   "title": "Pixelhaus Sense Controller, Two-Tone",
+   "image_url": "https://images.unsplash.com/photo-1774105416183-5058512ec5f0?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 7500,
+   "currency": "USD",
+   "category": "Gaming & VR"
+  },
+  {
+   "id": "m-88b330fff9",
+   "title": "Pixelhaus Vision VR Headset, 128GB",
+   "image_url": "https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 39900,
+   "currency": "USD",
+   "category": "Gaming & VR"
+  },
+  {
+   "id": "m-77a51388b9",
+   "title": "Aurelo Arc 500 Over-Ear Headphones",
+   "image_url": null,
+   "price_cents": 12900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-7eecb0fa26",
+   "title": "Aurelo Arc 700 Wireless Headphones, Black",
+   "image_url": "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 27900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-dd3ad85db8",
+   "title": "Aurelo Arc 900 Noise-Cancelling Headphones",
+   "image_url": "https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 19900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-0057a7de8f",
+   "title": "Aurelo Arc Max Wireless Headphones, Midnight",
+   "image_url": "https://images.unsplash.com/photo-1628116709703-c1c9ad550d36?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 44900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-8c1c2d8f99",
+   "title": "Aurelo Arc Max Wireless Headphones, Rose Gold",
+   "image_url": "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 44900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-1e64c971cf",
+   "title": "Aurelo Heritage Wired Headphones, Chrome & Tan",
+   "image_url": "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 15900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-ecf01b7a87",
+   "title": "Aurelo OnEar Wired Headphones, Grey",
+   "image_url": "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 3900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-cf65ef5567",
+   "title": "Aurelo Retro 70 Wired Headphones",
+   "image_url": "https://images.unsplash.com/photo-1593121925328-369cc8459c08?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 8900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-219256b8ab",
+   "title": "Aurelo Studio 7 Wireless Headphones",
+   "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 14900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-9a21431ada",
+   "title": "Aurelo Studio Pro Monitor Headphones",
+   "image_url": "https://images.unsplash.com/photo-1520170350707-b2da59970118?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 19900,
+   "currency": "USD",
+   "category": "Headphones"
+  },
+  {
+   "id": "m-a1fa355641",
+   "title": "Clackwork Air 75 Low-Profile Keyboard",
+   "image_url": "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 11900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-7f583e83fa",
+   "title": "Clackwork Glow RGB Wireless Keyboard",
+   "image_url": "https://urx.co.in/cdn/shop/files/black-1_02a5590f-56df-435a-b4f0-f793f5785e88.png?v=1790938152",
+   "price_cents": 9900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-ffb1dbb36d",
+   "title": "Clackwork Heritage 87 Mechanical Keyboard",
+   "image_url": "https://images.unsplash.com/photo-1760708551859-6559dc9640b8?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 13900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-2ac76f3ee7",
+   "title": "Clackwork Office 104 Full-Size Keyboard",
+   "image_url": "https://images.unsplash.com/photo-1635987391914-cb84b567e68f?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 7900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-5a2c0949ff",
+   "title": "Clackwork Pastel 65 Keyboard, Candy",
+   "image_url": "https://images.unsplash.com/photo-1601445638532-3c6f6c3aa1d6?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 12900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-1551a4dec9",
+   "title": "Clackwork Retro 68 Hot-Swap Keyboard",
+   "image_url": "https://images.unsplash.com/photo-1625130694338-4110ba634e59?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 9900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-5f51856134",
+   "title": "Clackwork Slim 84 Wireless Keyboard",
+   "image_url": "https://images.unsplash.com/photo-1589578228447-e1a4e481c6c8?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 8900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-2d54d0fd9b",
+   "title": "Clackwork Sprint 65 Hot-Swap Keyboard",
+   "image_url": "https://images.unsplash.com/photo-1595044426077-d36d9236d54a?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 10900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-ee9a303120",
+   "title": "Glidex Classic Wireless Mouse",
+   "image_url": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 2900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-bb11b8ecb2",
+   "title": "Glidex Comfort Mouse, Ruby Red",
+   "image_url": "https://images.unsplash.com/photo-1551515300-2d3b7bb80920?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 3500,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-2c7520bf7c",
+   "title": "Glidex Ergo MX Wireless Mouse",
+   "image_url": "https://images.unsplash.com/photo-1739742473235-34a7bd9b8f87?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 9900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-fcd9ea4473",
+   "title": "Glidex Pro X Superlight Gaming Mouse",
+   "image_url": "https://images.unsplash.com/photo-1658070429465-848c0796abf3?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 14900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-ec53f4a341",
+   "title": "Glidex Shadow Wireless Mouse",
+   "image_url": "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 4500,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-65c4cbb2d6",
+   "title": "Glidex Silent Click Mouse, Champagne",
+   "image_url": "https://images.unsplash.com/photo-1766713993296-4b7ce61e9ace?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 2500,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-71459e1a94",
+   "title": "Glidex Touch Arc Mouse, Silver",
+   "image_url": "https://images.unsplash.com/photo-1772531606450-0dd023c265d7?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 7900,
+   "currency": "USD",
+   "category": "Keyboards & Mice"
+  },
+  {
+   "id": "m-efdca122b0",
+   "title": "Strata Air 13 Laptop, Silver",
+   "image_url": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 109900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-8bb615ee42",
+   "title": "Strata Air 14 Ultrabook",
+   "image_url": "https://images.unsplash.com/photo-1595303526913-c7037797ebe7?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 89900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-ac458a1060",
+   "title": "Strata Arena 27\" 165Hz Gaming Monitor",
+   "image_url": "https://images.unsplash.com/photo-1547658718-1cdaa0852790?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 32900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-a0507a1595",
+   "title": "Strata Blade 16 Gaming Laptop",
+   "image_url": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 189900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-ab8f9b824b",
+   "title": "Strata Book 13 Laptop, Silver",
+   "image_url": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 99900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-69756f49fc",
+   "title": "Strata Book Pro 14 Laptop, Space Grey",
+   "image_url": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 159900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-46917a6210",
+   "title": "Strata Studio 27\" 5K Display",
+   "image_url": "https://images.unsplash.com/photo-1585792180666-f7347c490ee2?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 129900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-81e492671d",
+   "title": "Strata View 24\" Office Monitor",
+   "image_url": "https://images.unsplash.com/photo-1570485071395-29b575ea3b4e?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 18900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-ebb5740fc8",
+   "title": "Strata Wide 34\" Curved Monitor",
+   "image_url": "https://images.unsplash.com/photo-1666771410140-0573b232426e?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 69900,
+   "currency": "USD",
+   "category": "Laptops & Monitors"
+  },
+  {
+   "id": "m-d0905dd275",
+   "title": "Vocalis Broadcast SM7 Dynamic Microphone",
+   "image_url": "https://images.unsplash.com/photo-1590602846989-e99596d2a6ee?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 24900,
+   "currency": "USD",
+   "category": "Microphones"
+  },
+  {
+   "id": "m-2ea3df08d9",
+   "title": "Vocalis Chrome 1950 Vintage Microphone",
+   "image_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 22900,
+   "currency": "USD",
+   "category": "Microphones"
+  },
+  {
+   "id": "m-b691eb39d8",
+   "title": "Vocalis Desk USB Microphone",
+   "image_url": "https://images.unsplash.com/photo-1554200876-907f9286c2a1?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 12900,
+   "currency": "USD",
+   "category": "Microphones"
+  },
+  {
+   "id": "m-e0865372f7",
+   "title": "Vocalis Stream Kit with Boom Arm",
+   "image_url": "https://images.unsplash.com/photo-1660631228116-b3643559f611?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 18900,
+   "currency": "USD",
+   "category": "Microphones"
+  },
+  {
+   "id": "m-6d8cc78eff",
+   "title": "Vocalis Studio C1 Condenser Microphone",
+   "image_url": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 14900,
+   "currency": "USD",
+   "category": "Microphones"
+  },
+  {
+   "id": "m-f534a3816f",
+   "title": "Vocalis Vintage 55 Microphone",
+   "image_url": "https://images.unsplash.com/photo-1485579149621-3123dd979885?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 19900,
+   "currency": "USD",
+   "category": "Microphones"
+  },
+  {
+   "id": "m-8234eafaaa",
+   "title": "Orbix Tab 11 Pro, 128GB",
+   "image_url": "https://images.unsplash.com/photo-1623126908029-58cb08a2b272?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 64900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-3a83f2cf04",
+   "title": "Orbix Tab 11, Ocean Blue",
+   "image_url": "https://images.unsplash.com/photo-1604399852419-f67ee7d5f2ef?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 44900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-b333e0d73d",
+   "title": "Orbix Tab Air 10.9\" with Stylus",
+   "image_url": "https://images.unsplash.com/photo-1625864667534-aa5208d45a87?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 52900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-f192298383",
+   "title": "Orbix X10 6.1\" 64GB, Crimson",
+   "image_url": "https://images.unsplash.com/photo-1571380401583-72ca84994796?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 39900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-78288f10f4",
+   "title": "Orbix X11 6.1\" 128GB, Pacific Blue",
+   "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 49900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-d143df266f",
+   "title": "Orbix X12 6.1\" 128GB, Midnight",
+   "image_url": "https://images.unsplash.com/photo-1583291023438-41cef6453b1f?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 59900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-f1b167cc82",
+   "title": "Orbix X12 Mini 5.4\" 128GB, Blush",
+   "image_url": "https://images.unsplash.com/photo-1722834228772-01d16b9bf83b?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 64900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-a43ceb59bf",
+   "title": "Orbix X12 Pro 6.1\" 256GB, Copper",
+   "image_url": "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 99900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-e2e737f358",
+   "title": "Orbix X12 Ultra 6.7\" 256GB",
+   "image_url": "https://images.unsplash.com/photo-1650580809796-39361e4d77f6?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 89900,
+   "currency": "USD",
+   "category": "Phones & Tablets"
+  },
+  {
+   "id": "m-fbdf206070",
+   "title": "Boomly Boom 3 Rugged Speaker, Violet",
+   "image_url": "https://images.unsplash.com/photo-1598034989845-48532781987e?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 12900,
+   "currency": "USD",
+   "category": "Speakers"
+  },
+  {
+   "id": "m-a9c651115b",
+   "title": "Boomly Cube Mini Speaker, Ice Blue",
+   "image_url": "https://images.unsplash.com/photo-1582978571763-2d039e56f0c3?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 3900,
+   "currency": "USD",
+   "category": "Speakers"
+  },
+  {
+   "id": "m-9f266eb230",
+   "title": "Boomly Fabric Home Speaker, Charcoal",
+   "image_url": "https://images.unsplash.com/photo-1507878566509-a0dbe19677a5?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 14900,
+   "currency": "USD",
+   "category": "Speakers"
+  },
+  {
+   "id": "m-0e46bf0cf4",
+   "title": "Boomly Halo Mini Smart Speaker, Space Grey",
+   "image_url": "https://images.unsplash.com/photo-1529359744902-86b2ab9edaea?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 7900,
+   "currency": "USD",
+   "category": "Speakers"
+  },
+  {
+   "id": "m-164338fe61",
+   "title": "Boomly Halo Smart Speaker",
+   "image_url": "https://images.unsplash.com/photo-1761384409444-2f8359d67a69?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 9900,
+   "currency": "USD",
+   "category": "Speakers"
+  },
+  {
+   "id": "m-ed1524bf43",
+   "title": "Boomly Pebble Go Portable Speaker",
+   "image_url": "https://images.unsplash.com/photo-1547052178-7f2c5a20c332?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 4900,
+   "currency": "USD",
+   "category": "Speakers"
+  },
+  {
+   "id": "m-db102e892a",
+   "title": "Pulsewear Active 4 Smartwatch, Graphite",
+   "image_url": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 24900,
+   "currency": "USD",
+   "category": "Wearables"
+  },
+  {
+   "id": "m-006f129a10",
+   "title": "Pulsewear Active 4, Sport Loop",
+   "image_url": "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 27900,
+   "currency": "USD",
+   "category": "Wearables"
+  },
+  {
+   "id": "m-57943f35a7",
+   "title": "Pulsewear Active 4, Stainless Link",
+   "image_url": "https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 34900,
+   "currency": "USD",
+   "category": "Wearables"
+  },
+  {
+   "id": "m-88e807233a",
+   "title": "Pulsewear Band 6 Fitness Tracker",
+   "image_url": "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 4900,
+   "currency": "USD",
+   "category": "Wearables"
+  },
+  {
+   "id": "m-a962b5a7d5",
+   "title": "Pulsewear Classic Smartwatch, Leather Strap",
+   "image_url": "https://images.unsplash.com/photo-1461141346587-763ab02bced9?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 29900,
+   "currency": "USD",
+   "category": "Wearables"
+  },
+  {
+   "id": "m-e3fa0b8562",
+   "title": "Pulsewear Lite, Pearl White",
+   "image_url": "https://images.unsplash.com/photo-1617043983671-adaadcaa2460?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 17900,
+   "currency": "USD",
+   "category": "Wearables"
+  },
+  {
+   "id": "m-e5a85ed78e",
+   "title": "Pulsewear Round GT Smartwatch",
+   "image_url": "https://images.unsplash.com/photo-1632794716789-42d9995fb5b6?w=1200&q=75&auto=format&fit=crop",
+   "price_cents": 22900,
+   "currency": "USD",
+   "category": "Wearables"
+  }
+ ]
+}

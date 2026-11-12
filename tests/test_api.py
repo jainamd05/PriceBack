@@ -196,3 +196,18 @@ def test_unverified_mode_records_but_never_changes_state(client, paypal, monkeyp
     r = client.post("/api/webhooks/paypal", content=json.dumps(refund_event("EVT-9", "REF-1"))).json()
     assert r["result"] == "recorded" and r["verified"] is False
     assert client.get("/api/settlements").json()[0]["webhook_confirmed_at"] is None
+
+
+def test_seed_catalog_fills_an_empty_store(monkeypatch, paypal):
+    monkeypatch.setenv("SEED_CATALOG", "true")
+    app.dependency_overrides[get_paypal] = lambda: paypal
+    with TestClient(app) as c:
+        products = c.get("/api/products").json()
+        g = c.get("/api/guarantee").json()
+    app.dependency_overrides.clear()
+    assert len(products) == 100 and all(p["category"] for p in products)
+    assert g["active"] and g["window_days"] == 14 and g["max_refund_per_order"] == 20
+    from app.db import connect, seed_if_empty
+    from contextlib import closing
+    with closing(connect()) as conn:
+        assert seed_if_empty(conn) == 0  # never seeds twice or over a merchant's own catalog

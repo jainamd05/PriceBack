@@ -23,7 +23,7 @@ from . import notify, shoppers
 from . import policy as policy_mod
 from . import prices
 from .config import get_settings
-from .db import connect, init_db, tx
+from .db import connect, init_db, seed_if_empty, tx
 from .models import Policy
 from .money import to_cents
 from .paypal import PayPalClient, PayPalError
@@ -96,8 +96,9 @@ async def lifespan(app: FastAPI):
     s = get_settings()
     with closing(connect()) as conn:
         conn.execute("DELETE FROM products WHERE source='demo'")  # the old built-in sample catalog is gone
-        if s.channel3_api_key and not conn.execute(
-                "SELECT 1 FROM products WHERE source='channel3' LIMIT 1").fetchone():
+        if s.seed_catalog and (n := seed_if_empty(conn)):
+            log.info("loaded %s products and the price promise from seed_catalog.json", n)
+        if s.channel3_api_key and not conn.execute("SELECT 1 FROM products LIMIT 1").fetchone():
             r = prices.refresh_catalog(conn)  # import the catalog so checkout works before anyone visits
             if r["error"]:
                 log.warning("Channel3 catalog import failed: %s", r["error"])

@@ -36,6 +36,7 @@ class Settings:
     db_path: str
     watch_interval_seconds: int
     default_daily_budget: float
+    seed_catalog: bool             # load app/seed_catalog.json when the database is empty (Render's free disk resets)
     # Shopper accounts + notifications
     brevo_api_key: str             # transactional email over HTTPS (Render's free plan blocks SMTP)
     mail_from: str                 # the From address (verified in Brevo, or your SMTP login)
@@ -70,6 +71,7 @@ def get_settings() -> Settings:
         db_path=os.getenv("PRICEBACK_DB", "priceback.db"),
         watch_interval_seconds=int(os.getenv("WATCH_INTERVAL_SECONDS", "0")),
         default_daily_budget=float(os.getenv("DEFAULT_DAILY_BUDGET", "100")),
+        seed_catalog=_bool("SEED_CATALOG"),
         brevo_api_key=os.getenv("BREVO_API_KEY", "").strip(),
         mail_from=(os.getenv("MAIL_FROM", "").strip() or os.getenv("SMTP_USER", "").strip()),
         smtp_host=os.getenv("SMTP_HOST", "").strip(),

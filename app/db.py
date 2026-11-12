@@ -1,8 +1,11 @@
 """SQLite storage. Connections run in autocommit mode; use tx() for atomic sections."""
 from __future__ import annotations
 
+import json
 import sqlite3
+import time
 from contextlib import closing, contextmanager
+from pathlib import Path
 
 from .config import get_settings
 
@@ -151,3 +154,28 @@ def init_db() -> None:
         ocols = {r["name"] for r in conn.execute("PRAGMA table_info(orders)")}
         if "buyer_email" not in ocols:  # databases created before shopper accounts existed
             conn.execute("ALTER TABLE orders ADD COLUMN buyer_email TEXT")
+
+
+SEED_FILE = Path(__file__).with_name("seed_catalog.json")
+
+
+def seed_if_empty(conn: sqlite3.Connection, path: Path = SEED_FILE) -> int:
+    """Load the starting catalog and price promise into an empty database. Returns products added.
+
+    Render's free plan has no persistent disk, so the database starts empty after every deploy or restart.
+    """
+    if conn.execute("SELECT 1 FROM products LIMIT 1").fetchone() or not path.exists():
+        return 0
+    seed = json.loads(path.read_text(encoding="utf-8"))
+    now = int(time.time())
+    with tx(conn):
+        conn.executemany(
+            "INSERT OR IGNORE INTO products (id, title, image_url, price_cents, currency, source, category, updated_at)"
+            " VALUES (?,?,?,?,?,'merchant',?,?)",
+            [(p["id"], p["title"], p.get("image_url"), p["price_cents"], p.get("currency", "USD"), p.get("category"), now)
+             for p in seed["products"]])
+        pol = seed.get("policy")
+        if pol and not conn.execute("SELECT 1 FROM policies WHERE active=1").fetchone():
+            conn.execute("INSERT INTO policies (text, policy_json, source, active, created_at) VALUES (?,?,?,1,?)",
+                         (pol["text"], json.dumps(pol["policy"], separators=(",", ":")), pol.get("source", "rules"), now))
+    return len(seed["products"])

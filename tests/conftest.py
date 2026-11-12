@@ -15,7 +15,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("PRICEBACK_DB", str(tmp_path / "test.db"))
     for k in ("GEMINI_API_KEY", "CHANNEL3_API_KEY", "ADMIN_TOKEN", "PAYPAL_WEBHOOK_ID",
               "ALLOW_UNVERIFIED_WEBHOOKS", "WATCH_INTERVAL_SECONDS", "BREVO_API_KEY", "MAIL_FROM",
-              "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD",
+              "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SEED_CATALOG",
               "ZAPIER_HOOK_URL", "DEMO_BUYER_EMAIL", "DEMO_BUYER_PASSWORD", "DEMO_SELF_SERVE"):
         monkeypatch.delenv(k, raising=False)
     from app import notify

@@ -47,7 +47,7 @@ validated `Policy` reaches the refund path, and every amount is computed by dete
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
 cp .env.example .env          # fill in what you have
-pytest -q                     # 55 tests, no network
+pytest -q                     # 56 tests, no network
 uvicorn app.main:app --reload # http://localhost:8000  (store)   /merchant (dashboard)
 ```
 
