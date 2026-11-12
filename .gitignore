@@ -11,6 +11,7 @@ __pycache__/
 *.db.bak*
 # personal debugging screenshots
 Problem/
+buggers/
 
 # launch video project (kept local, not on GitHub)
 brag-output/

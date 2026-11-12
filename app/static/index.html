@@ -118,7 +118,7 @@
       </div>
       <div class="terms-list reveal" id="terms-list"></div>
       <p class="quote reveal" id="quote"></p>
-      <div class="eyebrow quote-by reveal">The store's promise, in its own words</div>
+      <div class="eyebrow quote-by reveal" id="quote-by">The store's promise, in its own words</div>
     </div>
   </section>
 </main>
@@ -366,6 +366,7 @@ function termsView() {
     t(G.min_drop_pct ? `${G.min_drop_pct}%` : 'Any', 'Smallest drop', G.min_drop_pct ? 'Smaller drops are ignored.' : 'Even a small drop counts.'),
     t('Auto', 'How you get it', 'A partial refund on your original PayPal payment. Nothing to claim.'));
   $('#quote').textContent = G.text;
+  $('#quote-by').textContent = G.testing ? 'Your Testing promise, in your own words (only you see it)' : 'The store’s promise, in its own words';
   $('#how-2').textContent = `Every covered order is checked against the market price for ${G.window_days} days after you pay.`;
   $('#how-3').textContent = `If the price falls, up to ${dollars(G.max_refund_per_order)} goes straight back to your PayPal account. Automatically.`;
 }
