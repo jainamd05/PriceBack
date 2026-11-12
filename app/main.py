@@ -170,6 +170,12 @@ app = FastAPI(title="PriceBack", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
+# ---- health -------------------------------------------------------------------------------
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 # ---- pages -------------------------------------------------------------------------------
 @app.get("/", include_in_schema=False)
 def index():

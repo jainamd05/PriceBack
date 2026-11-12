@@ -8,6 +8,14 @@ from app.main import app, get_paypal
 PROMISE = "Refund the difference if the price drops within 14 days, up to $20 per order and $100 per day."
 
 
+def test_health_endpoint():
+    with TestClient(app) as client:
+        response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
 @pytest.fixture
 def client(paypal):
     app.dependency_overrides[get_paypal] = lambda: paypal
